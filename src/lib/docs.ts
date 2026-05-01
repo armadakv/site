@@ -27,7 +27,10 @@ let _manifest: DocsManifest | null = null;
 
 export function getManifest(): DocsManifest {
   if (_manifest) return _manifest;
-  const filePath = path.join(process.cwd(), 'src/generated/docs-manifest.json');
+  const filePath = path.join(
+    /*turbopackIgnore: true*/ process.cwd(),
+    'src/generated/docs-manifest.json',
+  );
   _manifest = JSON.parse(fs.readFileSync(filePath, 'utf-8')) as DocsManifest;
   return _manifest;
 }
@@ -44,7 +47,7 @@ export function getDocPage(
   const page = versionDocs.pages.find((p) => p.slug.join('/') === slugKey);
   if (!page) return null;
 
-  const filePath = path.join(process.cwd(), page.file);
+  const filePath = path.join(/*turbopackIgnore: true*/ process.cwd(), page.file);
   if (!fs.existsSync(filePath)) return null;
 
   const content = fs.readFileSync(filePath, 'utf-8');
