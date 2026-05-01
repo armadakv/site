@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Armada KV Site
 
-## Getting Started
+The official website for [Armada KV](https://github.com/armadakv/armada) — a distributed key-value store. This site combines a landing page with a full documentation site, both served from a single Next.js application deployed on Netlify.
 
-First, run the development server:
+## Local Development
+
+### Prerequisites
+
+- Node.js 20+
+- The `armada` repository cloned as a sibling directory (`../armada`) **or** internet access for the CI remote-clone path
+
+### Setup
 
 ```bash
+# From the repo root, clone the armada sibling if you haven't already
+git clone https://github.com/armadakv/armada.git ../armada
+
+# Install dependencies
+cd site
+npm install
+
+# Start the development server (docs are synced automatically via prebuild)
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the site.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Docs Sync
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Documentation is pulled from the `armada` repository's `docs/` directory by `scripts/sync-docs.mjs`, which runs automatically as part of the `prebuild` npm script before every build.
 
-## Learn More
+| Mode            | Trigger                                         | Behaviour                                     |
+| --------------- | ----------------------------------------------- | --------------------------------------------- |
+| **Local**       | `../armada` directory exists                    | Copies docs from the local sibling checkout   |
+| **CI / remote** | `../armada` absent, or `FORCE_REMOTE_DOCS=true` | Shallow-clones the repo via `ARMADA_REPO_URL` |
 
-To learn more about Next.js, take a look at the following resources:
+See `.env.example` for available environment variables.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Netlify Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The site is deployed to Netlify using [`@netlify/plugin-nextjs`](https://github.com/netlify/netlify-plugin-nextjs), which enables full SSR/ISR support alongside statically exported docs pages.
 
-## Deploy on Vercel
+Key configuration lives in `netlify.toml`:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Build command**: `npm run build` (triggers `prebuild` → docs sync → Next.js build)
+- **Publish directory**: `.next`
+- **Node version**: 20
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+No extra Netlify environment variables are required for a basic deployment. Set `ARMADA_REPO_URL` only if you need to pull docs from a fork.
+
+## Project Structure
+
+```
+site/
+├── public/              # Static assets (favicons, og images, etc.)
+│   └── docs-static/     # Synced static assets from armada/docs/
+├── scripts/
+│   └── sync-docs.mjs    # Docs sync script (run before build)
+├── src/
+│   └── app/             # Next.js App Router pages & layouts
+│       ├── page.tsx     # Landing page
+│       └── docs/        # Documentation pages
+├── netlify.toml         # Netlify build & plugin configuration
+├── next.config.ts       # Next.js configuration
+└── .env.example         # Documented environment variables
+```
