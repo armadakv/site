@@ -120,10 +120,11 @@ function parseFrontmatter(content) {
   const yaml = rest.slice(0, closeMatch.index);
   const data = {};
   for (const line of yaml.split('\n')) {
-    const m = line.match(/^([\w-]+):\s*(.+)$/);
+    const m = line.match(/^([\w-]+):\s*(.*)$/);
     if (m) {
-      // Strip optional surrounding quotes
-      data[m[1]] = m[2].trim().replace(/^(['"])(.*)\1$/, '$2');
+      const raw = (m[2] ?? '').trim();
+      // Strip matching surrounding quotes (" or ')
+      data[m[1]] = raw.replace(/^"(.*)"$/, '$1').replace(/^'(.*)'$/, '$1');
     }
   }
   return { data, content };
