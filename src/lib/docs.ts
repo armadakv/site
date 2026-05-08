@@ -5,6 +5,7 @@ export interface DocPage {
   slug: string[];
   title: string;
   file: string;
+  description?: string;
 }
 
 export interface VersionDocs {

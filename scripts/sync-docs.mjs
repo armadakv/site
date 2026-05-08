@@ -103,6 +103,32 @@ function readBinaryAtRef(repoPath, ref, filePath) {
   }
 }
 
+/**
+ * Parse YAML front-matter from markdown content.
+ * Returns { data, content } where content is UNCHANGED (frontmatter is not stripped).
+ * Only handles simple scalar values (string/number); nested objects are ignored.
+ */
+function parseFrontmatter(content) {
+  if (!content.startsWith('---\n') && !content.startsWith('---\r\n')) {
+    return { data: {}, content };
+  }
+  const afterOpen = content.indexOf('\n') + 1;
+  const rest = content.slice(afterOpen);
+  const closeMatch = rest.match(/^---[ \t]*$/m);
+  if (!closeMatch) return { data: {}, content };
+
+  const yaml = rest.slice(0, closeMatch.index);
+  const data = {};
+  for (const line of yaml.split('\n')) {
+    const m = line.match(/^([\w-]+):\s*(.+)$/);
+    if (m) {
+      // Strip optional surrounding quotes
+      data[m[1]] = m[2].trim().replace(/^(['"])(.*)\1$/, '$2');
+    }
+  }
+  return { data, content };
+}
+
 /** Extract the first H1 heading from markdown content. */
 function extractTitle(content) {
   const m = content.match(/^#\s+(.+)$/m);
@@ -221,18 +247,26 @@ async function main() {
         }
 
         const rewritten = rewriteContent(content, relPath, version);
-        const title = extractTitle(content) || relPath.replace(/\.md$/, '');
+        const { data: fm } = parseFrontmatter(content);
+        const title =
+          fm.title ||
+          fm.sidebar_label ||
+          extractTitle(content) ||
+          relPath.replace(/\.md$/, '');
         const slug = fileToSlug(relPath);
 
         const outPath = path.join(SITE_ROOT, 'src', 'generated', 'docs', version, relPath);
         fs.mkdirSync(path.dirname(outPath), { recursive: true });
         fs.writeFileSync(outPath, rewritten, 'utf8');
 
-        pages.push({
+        /** @type {{ slug: string[], title: string, file: string, description?: string }} */
+        const pageEntry = {
           slug,
           title,
           file: path.posix.join('src', 'generated', 'docs', version, relPath),
-        });
+        };
+        if (fm.description) pageEntry.description = fm.description;
+        pages.push(pageEntry);
       }
 
       // Copy binary static assets
