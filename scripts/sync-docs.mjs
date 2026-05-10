@@ -125,7 +125,7 @@ function parseFrontmatter(content) {
     const m = line.match(/^([\w-]+):\s*(.*)$/);
     if (m) {
       const raw = (m[2] ?? '').trim();
-      // Strip matching surrounding quotes (" or ') only when the pair matches.
+      // Strip matching surrounding quotes (" or ') for simple scalar values only.
       const quoted = raw.match(/^(['"])(.*)\1$/);
       data[m[1]] = quoted ? quoted[2] : raw;
     }

@@ -62,7 +62,7 @@ function getSlugCandidates(slug: string[]): string[] {
   const exact = normalized.join('/');
   const candidates = [exact];
 
-  if (normalized[normalized.length - 1] !== 'index') {
+  if (normalized.at(-1) !== 'index') {
     candidates.push([...normalized, 'index'].join('/'));
   }
 
