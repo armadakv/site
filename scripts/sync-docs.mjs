@@ -125,8 +125,9 @@ function parseFrontmatter(content) {
     const m = line.match(/^([\w-]+):\s*(.*)$/);
     if (m) {
       const raw = (m[2] ?? '').trim();
-      // Strip matching surrounding quotes (" or ')
-      data[m[1]] = raw.replace(/^"(.*)"$/, '$1').replace(/^'(.*)'$/, '$1');
+      // Strip matching surrounding quotes (" or ') only when the pair matches.
+      const quoted = raw.match(/^(['"])(.*)\1$/);
+      data[m[1]] = quoted ? quoted[2] : raw;
     }
   }
   return { data, content };
@@ -187,7 +188,8 @@ function rewriteContent(content, relPath, version) {
     // If it resolves outside docs/ root, leave it unchanged
     if (resolved.startsWith('..')) return match;
 
-    // Strip .md extension if present, including common "page.md/#anchor" forms.
+    // Strip .md extension and any trailing slash so links like "page.md/",
+    // "page.md/#anchor", and "dir/" resolve to site routes consistently.
     resolved = resolved.replace(/\.md(?=\/|$)/, '').replace(/\/$/, '');
 
     return `[${text}](/docs/${version}/${resolved}${anchor})`;
