@@ -68,8 +68,9 @@ export default async function DocsPage({ params }: PageProps) {
     notFound();
   }
 
+  const resolvedSlug = doc.page.slug;
   const sections = getSidebarSections(version);
-  const { prev, next } = getAdjacentPages(version, slug);
+  const { prev, next } = getAdjacentPages(version, resolvedSlug);
   const editUrl = getGitHubEditUrl(version, doc.page.file);
 
   return (
@@ -79,7 +80,7 @@ export default async function DocsPage({ params }: PageProps) {
         <div className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-64 shrink-0 overflow-y-auto border-r border-slate-200 px-4 py-8 lg:block dark:border-slate-800">
           <DocsSidebar
             sections={sections}
-            currentSlug={slug}
+            currentSlug={resolvedSlug}
             currentVersion={version}
             versions={manifest.versions}
           />

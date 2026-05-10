@@ -41,8 +41,9 @@ function getRepoPath() {
 
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'armada-docs-'));
   console.log('Cloning armada repo (shallow) to:', tempDir);
-  // Bare clone with partial object filter for speed on CI
-  run(`git clone --filter=blob:none --no-checkout --bare ${ARMADA_REMOTE} ${tempDir}`);
+  // Partial clone without checkout for speed on CI while remaining compatible
+  // with Git safe.bareRepository defaults in hosted environments.
+  run(`git clone --filter=blob:none --no-checkout ${ARMADA_REMOTE} ${tempDir}`);
   // Fetch all semver tags
   run(`git -C ${tempDir} fetch --tags`);
   return {
@@ -103,6 +104,35 @@ function readBinaryAtRef(repoPath, ref, filePath) {
   }
 }
 
+/**
+ * Parse YAML front-matter from markdown content.
+ * Returns { data, content } where content is UNCHANGED (frontmatter is not stripped).
+ * Only handles simple scalar values (string/number) and simple key names; nested objects are ignored.
+ */
+function parseFrontmatter(content) {
+  const openMatch = content.match(/^---[ \t]*(?:\r?\n)/);
+  if (!openMatch) {
+    return { data: {}, content };
+  }
+  const afterOpen = openMatch[0].length;
+  const rest = content.slice(afterOpen);
+  const closeMatch = rest.match(/^---[ \t]*$/m);
+  if (!closeMatch) return { data: {}, content };
+
+  const yaml = rest.slice(0, closeMatch.index);
+  const data = {};
+  for (const line of yaml.split('\n')) {
+    const m = line.match(/^([\w-]+):\s*(.*)$/);
+    if (m) {
+      const raw = (m[2] ?? '').trim();
+      // Strip matching surrounding quotes (" or ') for simple scalar values only.
+      const quoted = raw.match(/^(['"])(.*)\1$/);
+      data[m[1]] = quoted ? quoted[2] : raw;
+    }
+  }
+  return { data, content };
+}
+
 /** Extract the first H1 heading from markdown content. */
 function extractTitle(content) {
   const m = content.match(/^#\s+(.+)$/m);
@@ -158,8 +188,9 @@ function rewriteContent(content, relPath, version) {
     // If it resolves outside docs/ root, leave it unchanged
     if (resolved.startsWith('..')) return match;
 
-    // Strip .md extension if present
-    resolved = resolved.replace(/\.md$/, '');
+    // Normalize markdown-style targets to site routes, e.g. "page.md/",
+    // "page.md/#anchor", and "dir/".
+    resolved = resolved.replace(/\.md(?=\/|$)|\/$/g, '');
 
     return `[${text}](/docs/${version}/${resolved}${anchor})`;
   });
@@ -221,18 +252,23 @@ async function main() {
         }
 
         const rewritten = rewriteContent(content, relPath, version);
-        const title = extractTitle(content) || relPath.replace(/\.md$/, '');
+        const { data: fm } = parseFrontmatter(content);
+        const title =
+          fm.title || fm.sidebar_label || extractTitle(content) || relPath.replace(/\.md$/, '');
         const slug = fileToSlug(relPath);
 
         const outPath = path.join(SITE_ROOT, 'src', 'generated', 'docs', version, relPath);
         fs.mkdirSync(path.dirname(outPath), { recursive: true });
         fs.writeFileSync(outPath, rewritten, 'utf8');
 
-        pages.push({
+        /** @type {{ slug: string[], title: string, file: string, description?: string }} */
+        const pageEntry = {
           slug,
           title,
           file: path.posix.join('src', 'generated', 'docs', version, relPath),
-        });
+        };
+        if (fm.description) pageEntry.description = fm.description;
+        pages.push(pageEntry);
       }
 
       // Copy binary static assets
