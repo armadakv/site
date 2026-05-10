@@ -106,13 +106,14 @@ function readBinaryAtRef(repoPath, ref, filePath) {
 /**
  * Parse YAML front-matter from markdown content.
  * Returns { data, content } where content is UNCHANGED (frontmatter is not stripped).
- * Only handles simple scalar values (string/number); nested objects are ignored.
+ * Only handles simple scalar values (string/number) and simple key names; nested objects are ignored.
  */
 function parseFrontmatter(content) {
-  if (!content.startsWith('---\n') && !content.startsWith('---\r\n')) {
+  const openMatch = content.match(/^---[ \t]*(?:\r?\n)/);
+  if (!openMatch) {
     return { data: {}, content };
   }
-  const afterOpen = content.indexOf('\n') + 1;
+  const afterOpen = openMatch[0].length;
   const rest = content.slice(afterOpen);
   const closeMatch = rest.match(/^---[ \t]*$/m);
   if (!closeMatch) return { data: {}, content };
@@ -250,10 +251,7 @@ async function main() {
         const rewritten = rewriteContent(content, relPath, version);
         const { data: fm } = parseFrontmatter(content);
         const title =
-          fm.title ||
-          fm.sidebar_label ||
-          extractTitle(content) ||
-          relPath.replace(/\.md$/, '');
+          fm.title || fm.sidebar_label || extractTitle(content) || relPath.replace(/\.md$/, '');
         const slug = fileToSlug(relPath);
 
         const outPath = path.join(SITE_ROOT, 'src', 'generated', 'docs', version, relPath);
