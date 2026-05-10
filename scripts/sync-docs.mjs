@@ -188,9 +188,9 @@ function rewriteContent(content, relPath, version) {
     // If it resolves outside docs/ root, leave it unchanged
     if (resolved.startsWith('..')) return match;
 
-    // Strip .md extension and any trailing slash so links like "page.md/",
-    // "page.md/#anchor", and "dir/" resolve to site routes consistently.
-    resolved = resolved.replace(/\.md(?=\/|$)/, '').replace(/\/$/, '');
+    // Normalize markdown-style targets to site routes, e.g. "page.md/",
+    // "page.md/#anchor", and "dir/".
+    resolved = resolved.replace(/\.md(?=\/|$)|\/$/g, '');
 
     return `[${text}](/docs/${version}/${resolved}${anchor})`;
   });

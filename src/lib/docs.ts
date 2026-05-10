@@ -56,7 +56,9 @@ export function getDocPage(
 }
 
 function getSlugCandidates(slug: string[]): string[] {
-  const normalized = slug.map((segment) => segment.replace(/\.md$/, ''));
+  const normalized = [...slug];
+  const lastIndex = normalized.length - 1;
+  normalized[lastIndex] = normalized[lastIndex].replace(/\.md$/, '');
   const exact = normalized.join('/');
   const candidates = [exact];
 
