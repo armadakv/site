@@ -41,8 +41,9 @@ function getRepoPath() {
 
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'armada-docs-'));
   console.log('Cloning armada repo (shallow) to:', tempDir);
-  // Bare clone with partial object filter for speed on CI
-  run(`git clone --filter=blob:none --no-checkout --bare ${ARMADA_REMOTE} ${tempDir}`);
+  // Partial clone without checkout for speed on CI while remaining compatible
+  // with Git safe.bareRepository defaults in hosted environments.
+  run(`git clone --filter=blob:none --no-checkout ${ARMADA_REMOTE} ${tempDir}`);
   // Fetch all semver tags
   run(`git -C ${tempDir} fetch --tags`);
   return {
@@ -186,8 +187,8 @@ function rewriteContent(content, relPath, version) {
     // If it resolves outside docs/ root, leave it unchanged
     if (resolved.startsWith('..')) return match;
 
-    // Strip .md extension if present
-    resolved = resolved.replace(/\.md$/, '');
+    // Strip .md extension if present, including common "page.md/#anchor" forms.
+    resolved = resolved.replace(/\.md(?=\/|$)/, '').replace(/\/$/, '');
 
     return `[${text}](/docs/${version}/${resolved}${anchor})`;
   });

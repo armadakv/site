@@ -44,8 +44,8 @@ export function getDocPage(
   const versionDocs = manifest.byVersion[version];
   if (!versionDocs || !versionDocs.pages?.length) return null;
 
-  const slugKey = slug.join('/');
-  const page = versionDocs.pages.find((p) => p.slug.join('/') === slugKey);
+  const candidates = getSlugCandidates(slug);
+  const page = versionDocs.pages.find((p) => candidates.includes(p.slug.join('/')));
   if (!page) return null;
 
   const filePath = path.join(/*turbopackIgnore: true*/ process.cwd(), page.file);
@@ -53,6 +53,18 @@ export function getDocPage(
 
   const content = fs.readFileSync(filePath, 'utf-8');
   return { content, page };
+}
+
+function getSlugCandidates(slug: string[]): string[] {
+  const normalized = slug.map((segment) => segment.replace(/\.md$/, ''));
+  const exact = normalized.join('/');
+  const candidates = [exact];
+
+  if (normalized[normalized.length - 1] !== 'index') {
+    candidates.push([...normalized, 'index'].join('/'));
+  }
+
+  return candidates;
 }
 
 const TOP_LEVEL_SLUGS = new Set([
