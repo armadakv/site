@@ -8,6 +8,7 @@ import {
   getAdjacentPages,
   getDocHref,
   getDocSlugKey,
+  canonicalDocSlug,
 } from '@/lib/docs';
 import DocsSidebar from '@/components/DocsSidebar';
 import DocsContent from '@/components/DocsContent';
@@ -30,8 +31,7 @@ export async function generateStaticParams() {
         result.push({ version, slug: page.slug });
       }
 
-      const aliasSlug =
-        page.slug[page.slug.length - 1] === 'index' ? page.slug.slice(0, -1) : page.slug;
+      const aliasSlug = canonicalDocSlug(page.slug);
       if (aliasSlug.length > 0) {
         const aliasKey = `${version}:${aliasSlug.join('/')}`;
         if (!seen.has(aliasKey)) {
@@ -95,7 +95,8 @@ export default async function DocsPage({ params }: PageProps) {
   }
 
   const canonicalSlugKey = getDocSlugKey(doc.page.slug);
-  if (slug.join('/') !== canonicalSlugKey) {
+  const requestedSlugKey = getDocSlugKey(slug);
+  if (requestedSlugKey !== canonicalSlugKey) {
     redirect(getDocHref(version, doc.page.slug));
   }
 
