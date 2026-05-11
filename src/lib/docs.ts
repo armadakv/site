@@ -77,7 +77,7 @@ export function getDocPage(
 export { canonicalDocSlug, getDocSlugKey, getDocHref };
 
 function getSlugCandidates(slug: string[]): string[] {
-  // Canonical `/docs/<version>` routes resolve to the root `index` markdown page.
+  // Empty slug arrays (from `/docs/<version>` routes) resolve to the root `index` markdown page.
   if (!slug.length) {
     return ['index'];
   }
