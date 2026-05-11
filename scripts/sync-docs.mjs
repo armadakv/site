@@ -200,11 +200,11 @@ function rewriteContent(content, relPath, version) {
     // Normalize markdown-style targets to site routes, e.g. "page.md/",
     // "page.md/#anchor", and "dir/".
     resolved = resolved.replace(/\.md(?=\/|$)|\/$/g, '');
-    const indexSuffix = '/index';
+    const indexPathSegment = '/index';
     if (resolved === 'index') {
       resolved = '';
-    } else if (resolved.endsWith(indexSuffix)) {
-      resolved = resolved.slice(0, -indexSuffix.length);
+    } else if (resolved.endsWith(indexPathSegment)) {
+      resolved = resolved.slice(0, -indexPathSegment.length);
     }
 
     return `[${text}](/docs/${version}${resolved ? `/${resolved}` : ''}${anchor})`;

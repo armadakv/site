@@ -21,31 +21,25 @@ export async function generateStaticParams() {
   const manifest = getManifest();
   const seen = new Set<string>();
   const result: { version: string; slug: string[] }[] = [];
+  const addStaticParam = (version: string, slug: string[]) => {
+    const key = `${version}:${slug.join('/')}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    result.push({ version, slug });
+  };
 
   for (const version of manifest.versions) {
     const pages = manifest.byVersion[version]?.pages ?? [];
     for (const page of pages) {
-      const fullKey = `${version}:${page.slug.join('/')}`;
-      if (!seen.has(fullKey)) {
-        seen.add(fullKey);
-        result.push({ version, slug: page.slug });
-      }
+      addStaticParam(version, page.slug);
 
       const aliasSlug = canonicalDocSlug(page.slug);
       const staticParamSlug = aliasSlug.length === 0 ? ['index'] : aliasSlug;
-      const aliasKey = `${version}:${staticParamSlug.join('/')}`;
-      if (!seen.has(aliasKey)) {
-        seen.add(aliasKey);
-        result.push({ version, slug: staticParamSlug });
-      }
+      addStaticParam(version, staticParamSlug);
     }
     // Always include a fallback index entry per version even if no pages
     if (!pages.length) {
-      const fallbackKey = `${version}:index`;
-      if (!seen.has(fallbackKey)) {
-        seen.add(fallbackKey);
-        result.push({ version, slug: ['index'] });
-      }
+      addStaticParam(version, ['index']);
     }
   }
 
