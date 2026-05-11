@@ -85,7 +85,8 @@ export function getDocSlugKey(slug: string[]): string {
 
 export function getDocHref(version: string, slug: string[]): string {
   const canonical = canonicalDocSlug(slug);
-  return canonical.length > 0 ? `/docs/${version}/${canonical.join('/')}` : `/docs/${version}`;
+  const base = `/docs/${version}`;
+  return canonical.length > 0 ? `${base}/${canonical.join('/')}` : base;
 }
 
 function getSlugCandidates(slug: string[]): string[] {
