@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getManifest } from '@/lib/docs';
+import { getManifest, getDocHref } from '@/lib/docs';
 
 export default function DocsIndexPage() {
   const manifest = getManifest();
@@ -10,6 +10,6 @@ export default function DocsIndexPage() {
     manifest.defaultVersion;
 
   const versionPages = manifest.byVersion[version]?.pages;
-  const firstSlug = versionPages?.length ? versionPages[0].slug.join('/') : 'index';
-  redirect(`/docs/${version}/${firstSlug}`);
+  const firstSlug = versionPages?.length ? versionPages[0].slug : ['index'];
+  redirect(getDocHref(version, firstSlug));
 }

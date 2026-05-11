@@ -3,7 +3,7 @@
 import { useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { SidebarSection, SidebarSubsection, DocPage } from '@/lib/docs';
+import { SidebarSection, SidebarSubsection, DocPage, getDocHref, getDocSlugKey } from '@/lib/docs';
 
 const SCROLL_KEY = 'docs-sidebar-scroll';
 
@@ -21,7 +21,7 @@ export default function DocsSidebar({
   versions,
 }: DocsSidebarProps) {
   const router = useRouter();
-  const currentSlugKey = currentSlug.join('/');
+  const currentSlugKey = getDocSlugKey(currentSlug);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Restore saved scroll position on mount
@@ -43,7 +43,7 @@ export default function DocsSidebar({
 
   function handleVersionChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newVersion = e.target.value;
-    router.push(`/docs/${newVersion}/${currentSlugKey}`);
+    router.push(currentSlugKey ? `/docs/${newVersion}/${currentSlugKey}` : `/docs/${newVersion}`);
   }
 
   return (
@@ -96,7 +96,9 @@ function SidebarSectionComponent({
   currentSlugKey: string;
   version: string;
 }) {
-  const indexIsActive = section.indexPage?.slug.join('/') === currentSlugKey;
+  const indexIsActive = section.indexPage
+    ? getDocSlugKey(section.indexPage.slug) === currentSlugKey
+    : false;
 
   return (
     <div>
@@ -104,7 +106,7 @@ function SidebarSectionComponent({
       <div className="mb-0.5">
         {section.indexPage ? (
           <Link
-            href={`/docs/${version}/${section.indexPage.slug.join('/')}`}
+            href={getDocHref(version, section.indexPage.slug)}
             className={`block rounded-md px-2 py-1.5 text-xs font-semibold tracking-wider uppercase transition-colors ${
               indexIsActive
                 ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
@@ -128,7 +130,7 @@ function SidebarSectionComponent({
               key={page.slug.join('/')}
               page={page}
               version={version}
-              isActive={page.slug.join('/') === currentSlugKey}
+              isActive={getDocSlugKey(page.slug) === currentSlugKey}
             />
           ))}
         </ul>
@@ -156,7 +158,9 @@ function SidebarSubsectionComponent({
   currentSlugKey: string;
   version: string;
 }) {
-  const indexIsActive = subsection.indexPage?.slug.join('/') === currentSlugKey;
+  const indexIsActive = subsection.indexPage
+    ? getDocSlugKey(subsection.indexPage.slug) === currentSlugKey
+    : false;
 
   return (
     <div className="mt-1 pl-2">
@@ -164,7 +168,7 @@ function SidebarSubsectionComponent({
       <div className="mb-0.5">
         {subsection.indexPage ? (
           <Link
-            href={`/docs/${version}/${subsection.indexPage.slug.join('/')}`}
+            href={getDocHref(version, subsection.indexPage.slug)}
             className={`flex items-center rounded-md px-2 py-1.5 text-sm transition-colors ${
               indexIsActive
                 ? 'bg-blue-50 font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
@@ -187,7 +191,7 @@ function SidebarSubsectionComponent({
             key={page.slug.join('/')}
             page={page}
             version={version}
-            isActive={page.slug.join('/') === currentSlugKey}
+            isActive={getDocSlugKey(page.slug) === currentSlugKey}
           />
         ))}
       </ul>
@@ -204,7 +208,7 @@ function SidebarLink({
   version: string;
   isActive: boolean;
 }) {
-  const href = `/docs/${version}/${page.slug.join('/')}`;
+  const href = getDocHref(version, page.slug);
 
   return (
     <li>

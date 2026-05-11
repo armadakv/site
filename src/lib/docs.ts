@@ -73,7 +73,26 @@ export function getDocPage(
   return { content, page };
 }
 
+export function canonicalDocSlug(slug: string[]): string[] {
+  if (!slug.length) return [];
+  if (slug[slug.length - 1] === 'index') return slug.slice(0, -1);
+  return slug;
+}
+
+export function getDocSlugKey(slug: string[]): string {
+  return canonicalDocSlug(slug).join('/');
+}
+
+export function getDocHref(version: string, slug: string[]): string {
+  const canonical = canonicalDocSlug(slug);
+  return canonical.length > 0 ? `/docs/${version}/${canonical.join('/')}` : `/docs/${version}`;
+}
+
 function getSlugCandidates(slug: string[]): string[] {
+  if (!slug.length) {
+    return ['index'];
+  }
+
   const normalized = [...slug];
   const lastIndex = normalized.length - 1;
   normalized[lastIndex] = normalized[lastIndex].replace(/\.md$/, '');

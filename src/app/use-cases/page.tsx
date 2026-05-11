@@ -19,7 +19,7 @@ const useCases = [
       'Atomic updates via transactions',
       'Instant propagation on change',
     ],
-    link: { label: 'Read the User Guide', href: '/docs/main/user_guide/index' },
+    link: { label: 'Read the User Guide', href: '/docs/main/user_guide' },
   },
   {
     icon: '🚩',
@@ -87,7 +87,7 @@ const useCases = [
       'Reads continue during leader outages',
       'Operational runbooks in the docs',
     ],
-    link: { label: 'Operations Guide', href: '/docs/main/operations_guide/index' },
+    link: { label: 'Operations Guide', href: '/docs/main/operations_guide' },
   },
 ];
 

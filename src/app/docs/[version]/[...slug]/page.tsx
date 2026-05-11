@@ -1,7 +1,14 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getManifest, getDocPage, getSidebarSections, getAdjacentPages } from '@/lib/docs';
+import {
+  getManifest,
+  getDocPage,
+  getSidebarSections,
+  getAdjacentPages,
+  getDocHref,
+  getDocSlugKey,
+} from '@/lib/docs';
 import DocsSidebar from '@/components/DocsSidebar';
 import DocsContent from '@/components/DocsContent';
 
@@ -11,16 +18,35 @@ interface PageProps {
 
 export async function generateStaticParams() {
   const manifest = getManifest();
+  const seen = new Set<string>();
   const result: { version: string; slug: string[] }[] = [];
 
   for (const version of manifest.versions) {
     const pages = manifest.byVersion[version]?.pages ?? [];
     for (const page of pages) {
-      result.push({ version, slug: page.slug });
+      const fullKey = `${version}:${page.slug.join('/')}`;
+      if (!seen.has(fullKey)) {
+        seen.add(fullKey);
+        result.push({ version, slug: page.slug });
+      }
+
+      const aliasSlug =
+        page.slug[page.slug.length - 1] === 'index' ? page.slug.slice(0, -1) : page.slug;
+      if (aliasSlug.length > 0) {
+        const aliasKey = `${version}:${aliasSlug.join('/')}`;
+        if (!seen.has(aliasKey)) {
+          seen.add(aliasKey);
+          result.push({ version, slug: aliasSlug });
+        }
+      }
     }
     // Always include a fallback index entry per version even if no pages
     if (!pages.length) {
-      result.push({ version, slug: ['index'] });
+      const fallbackKey = `${version}:index`;
+      if (!seen.has(fallbackKey)) {
+        seen.add(fallbackKey);
+        result.push({ version, slug: ['index'] });
+      }
     }
   }
 
@@ -66,6 +92,11 @@ export default async function DocsPage({ params }: PageProps) {
       return <EmptyVersion version={version} manifest={manifest} />;
     }
     notFound();
+  }
+
+  const canonicalSlugKey = getDocSlugKey(doc.page.slug);
+  if (slug.join('/') !== canonicalSlugKey) {
+    redirect(getDocHref(version, doc.page.slug));
   }
 
   const resolvedSlug = doc.page.slug;
@@ -140,7 +171,7 @@ export default async function DocsPage({ params }: PageProps) {
             <div className="mt-12 grid max-w-3xl grid-cols-2 gap-4 border-t border-slate-200 pt-8 dark:border-slate-800">
               {prev ? (
                 <Link
-                  href={`/docs/${version}/${prev.slug.join('/')}`}
+                  href={getDocHref(version, prev.slug)}
                   className="group flex flex-col gap-1 rounded-lg border border-slate-200 p-4 transition-colors hover:border-blue-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-blue-500 dark:hover:bg-slate-800/50"
                 >
                   <span className="text-xs text-slate-500 dark:text-slate-400">← Previous</span>
@@ -153,7 +184,7 @@ export default async function DocsPage({ params }: PageProps) {
               )}
               {next ? (
                 <Link
-                  href={`/docs/${version}/${next.slug.join('/')}`}
+                  href={getDocHref(version, next.slug)}
                   className="group flex flex-col gap-1 rounded-lg border border-slate-200 p-4 text-right transition-colors hover:border-blue-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-blue-500 dark:hover:bg-slate-800/50"
                 >
                   <span className="text-xs text-slate-500 dark:text-slate-400">Next →</span>
@@ -189,7 +220,7 @@ function EmptyVersion({
           This version predates the documentation system. Try a newer version.
         </p>
         <Link
-          href={`/docs/${manifest.defaultVersion}/index`}
+          href={getDocHref(manifest.defaultVersion, ['index'])}
           className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
         >
           Go to latest docs
