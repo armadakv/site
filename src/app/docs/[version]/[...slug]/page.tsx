@@ -88,8 +88,8 @@ export default async function DocsPage({ params }: PageProps) {
   }
 
   const canonicalSlugKey = getDocSlugKey(doc.page.slug);
-  const requestedSlugKey = slug.join('/');
-  if (requestedSlugKey !== canonicalSlugKey) {
+  const requestedNonCanonicalSlug = slug.join('/');
+  if (requestedNonCanonicalSlug !== canonicalSlugKey) {
     redirect(getDocHref(version, doc.page.slug));
   }
 
