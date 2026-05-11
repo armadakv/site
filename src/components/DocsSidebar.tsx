@@ -4,6 +4,7 @@ import { useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { SidebarSection, SidebarSubsection, DocPage } from '@/lib/docs';
+import { getDocHref, getDocSlugKey } from '@/lib/docs-paths';
 
 const SCROLL_KEY = 'docs-sidebar-scroll';
 
@@ -12,22 +13,6 @@ interface DocsSidebarProps {
   currentSlug: string[];
   currentVersion: string;
   versions: string[];
-}
-
-function canonicalDocSlug(slug: string[]): string[] {
-  if (!slug.length) return [];
-  if (slug[slug.length - 1] === 'index') return slug.slice(0, -1);
-  return slug;
-}
-
-function getDocSlugKey(slug: string[]): string {
-  return canonicalDocSlug(slug).join('/');
-}
-
-function getDocHref(version: string, slug: string[]): string {
-  const canonical = canonicalDocSlug(slug);
-  const base = `/docs/${version}`;
-  return canonical.length > 0 ? `${base}/${canonical.join('/')}` : base;
 }
 
 export default function DocsSidebar({
@@ -59,7 +44,7 @@ export default function DocsSidebar({
 
   function handleVersionChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newVersion = e.target.value;
-    router.push(currentSlugKey ? `/docs/${newVersion}/${currentSlugKey}` : `/docs/${newVersion}`);
+    router.push(getDocHref(newVersion, currentSlug));
   }
 
   return (
