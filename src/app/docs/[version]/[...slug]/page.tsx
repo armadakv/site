@@ -32,10 +32,7 @@ export async function generateStaticParams() {
       }
 
       const aliasSlug = canonicalDocSlug(page.slug);
-      const staticAliasSlug =
-        aliasSlug.length === 0 && page.slug.length === 1 && page.slug[0] === 'index'
-          ? ['index']
-          : aliasSlug;
+      const staticAliasSlug = aliasSlug.length === 0 ? ['index'] : aliasSlug;
       const aliasKey = `${version}:${staticAliasSlug.join('/')}`;
       if (!seen.has(aliasKey)) {
         seen.add(aliasKey);
@@ -97,7 +94,7 @@ export default async function DocsPage({ params }: PageProps) {
   }
 
   const canonicalSlugKey = getDocSlugKey(doc.page.slug);
-  const requestedSlugKey = getDocSlugKey(slug);
+  const requestedSlugKey = slug.join('/');
   if (requestedSlugKey !== canonicalSlugKey) {
     redirect(getDocHref(version, doc.page.slug));
   }
