@@ -77,7 +77,7 @@ export default async function DocsPage({ params }: PageProps) {
     <div className="flex flex-1 flex-col">
       <div className="mx-auto flex w-full max-w-screen-xl flex-1">
         {/* Sidebar - hidden on mobile */}
-        <div className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-64 shrink-0 overflow-y-auto border-r border-slate-200 px-4 py-8 lg:block dark:border-slate-800">
+        <div className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-64 shrink-0 border-r border-slate-200 lg:block dark:border-slate-800">
           <DocsSidebar
             sections={sections}
             currentSlug={resolvedSlug}

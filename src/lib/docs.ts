@@ -6,10 +6,21 @@ export interface DocPage {
   title: string;
   file: string;
   description?: string;
+  subtitle?: string;
+  section?: string;
+  subsection?: string;
+  order?: number;
+}
+
+export interface SectionMeta {
+  label: string;
+  order: number;
 }
 
 export interface VersionDocs {
   pages: DocPage[];
+  sections: Record<string, SectionMeta>;
+  subsections: Record<string, SectionMeta>;
 }
 
 export interface DocsManifest {
@@ -18,10 +29,17 @@ export interface DocsManifest {
   byVersion: Record<string, VersionDocs>;
 }
 
+export interface SidebarSubsection {
+  title: string;
+  indexPage?: DocPage;
+  pages: DocPage[];
+}
+
 export interface SidebarSection {
   title: string;
+  indexPage?: DocPage;
   pages: DocPage[];
-  collapsible?: boolean;
+  subsections?: SidebarSubsection[];
 }
 
 let _manifest: DocsManifest | null = null;
@@ -69,76 +87,97 @@ function getSlugCandidates(slug: string[]): string[] {
   return candidates;
 }
 
-const TOP_LEVEL_SLUGS = new Set([
-  'index',
-  'quickstart',
-  'architecture',
-  'api',
-  'ecosystem',
-  'changelog',
-  'contributing',
-]);
-
-const SECTION_MAP: Record<string, string> = {
-  user_guide: 'User Guide',
-  operations_guide: 'Operations Guide',
-  proposals: 'Proposals',
-};
+/** Resolve section from frontmatter, falling back to slug-based heuristic for older docs. */
+function resolveSection(page: DocPage): string {
+  if (page.section) return page.section;
+  const first = page.slug[0];
+  if (first === 'user_guide') return 'user_guide';
+  if (first === 'operations_guide') return 'operations_guide';
+  if (first === 'proposals') return 'proposals';
+  return 'overview';
+}
 
 export function getSidebarSections(version: string): SidebarSection[] {
   const manifest = getManifest();
   const versionDocs = manifest.byVersion[version];
   if (!versionDocs || !versionDocs.pages?.length) return [];
 
-  const topLevel: DocPage[] = [];
-  const sections: Record<string, DocPage[]> = {};
+  const sectionRegistry = versionDocs.sections ?? {};
+  const subsectionRegistry = versionDocs.subsections ?? {};
 
+  // Group pages by section, then by subsection
+  const bySection: Record<string, DocPage[]> = {};
   for (const page of versionDocs.pages) {
-    const first = page.slug[0];
-    if (TOP_LEVEL_SLUGS.has(first)) {
-      topLevel.push(page);
-    } else if (SECTION_MAP[first]) {
-      if (!sections[first]) sections[first] = [];
-      sections[first].push(page);
-    } else {
-      topLevel.push(page);
-    }
+    const section = resolveSection(page);
+    if (!bySection[section]) bySection[section] = [];
+    bySection[section].push(page);
   }
 
-  // Sort top-level by a preferred order
-  const topOrder = [
-    'index',
-    'quickstart',
-    'architecture',
-    'api',
-    'ecosystem',
-    'changelog',
-    'contributing',
-  ];
-  topLevel.sort((a, b) => {
-    const ai = topOrder.indexOf(a.slug[0]);
-    const bi = topOrder.indexOf(b.slug[0]);
-    if (ai === -1 && bi === -1) return 0;
-    if (ai === -1) return 1;
-    if (bi === -1) return -1;
-    return ai - bi;
+  // Sort pages within each section by order, then alphabetically by title
+  const sortPages = (pages: DocPage[]) =>
+    [...pages].sort((a, b) => {
+      const ao = a.order ?? 999;
+      const bo = b.order ?? 999;
+      if (ao !== bo) return ao - bo;
+      return a.title.localeCompare(b.title);
+    });
+
+  // Determine section order: use registry order, fall back to alphabetical for unknowns
+  const sectionKeys = Object.keys(bySection).sort((a, b) => {
+    const ao = sectionRegistry[a]?.order ?? 999;
+    const bo = sectionRegistry[b]?.order ?? 999;
+    return ao - bo;
   });
 
   const result: SidebarSection[] = [];
 
-  if (topLevel.length > 0) {
-    result.push({ title: 'Overview', pages: topLevel });
-  }
+  for (const sectionKey of sectionKeys) {
+    const pages = bySection[sectionKey];
+    if (!pages?.length) continue;
 
-  const sectionOrder = ['user_guide', 'operations_guide', 'proposals'];
-  for (const key of sectionOrder) {
-    if (sections[key]?.length) {
-      result.push({
-        title: SECTION_MAP[key],
-        pages: sections[key],
-        collapsible: key === 'proposals',
-      });
+    const label = sectionRegistry[sectionKey]?.label ?? sectionKey;
+
+    // Separate flat pages from subsection pages, and pull out the index page
+    const allFlat: DocPage[] = [];
+    const bySubsection: Record<string, DocPage[]> = {};
+
+    for (const page of pages) {
+      if (page.subsection) {
+        if (!bySubsection[page.subsection]) bySubsection[page.subsection] = [];
+        bySubsection[page.subsection].push(page);
+      } else {
+        allFlat.push(page);
+      }
     }
+
+    const sorted = sortPages(allFlat);
+    const indexPage = sorted.find((p) => p.slug[p.slug.length - 1] === 'index');
+    const flatPages = sorted.filter((p) => p.slug[p.slug.length - 1] !== 'index');
+
+    // Sort subsections by their registry order
+    const subsectionKeys = Object.keys(bySubsection).sort((a, b) => {
+      const ao = subsectionRegistry[a]?.order ?? 999;
+      const bo = subsectionRegistry[b]?.order ?? 999;
+      return ao - bo;
+    });
+
+    const subsections: SidebarSubsection[] = subsectionKeys.map((key) => {
+      const subSorted = sortPages(bySubsection[key]);
+      const subIndex = subSorted.find((p) => p.slug[p.slug.length - 1] === 'index');
+      const subPages = subSorted.filter((p) => p.slug[p.slug.length - 1] !== 'index');
+      return {
+        title: subsectionRegistry[key]?.label ?? key,
+        indexPage: subIndex,
+        pages: subPages,
+      };
+    });
+
+    result.push({
+      title: label,
+      indexPage,
+      pages: flatPages,
+      subsections: subsections.length > 0 ? subsections : undefined,
+    });
   }
 
   return result;

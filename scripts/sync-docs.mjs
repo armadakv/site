@@ -107,7 +107,7 @@ function readBinaryAtRef(repoPath, ref, filePath) {
 /**
  * Parse YAML front-matter from markdown content.
  * Returns { data, content } where content is UNCHANGED (frontmatter is not stripped).
- * Only handles simple scalar values (string/number) and simple key names; nested objects are ignored.
+ * Handles simple scalar values (string/number) and simple key names; nested objects are ignored.
  */
 function parseFrontmatter(content) {
   const openMatch = content.match(/^---[ \t]*(?:\r?\n)/);
@@ -131,6 +131,16 @@ function parseFrontmatter(content) {
     }
   }
   return { data, content };
+}
+
+/** Strip YAML front-matter from markdown content, returning only the body. */
+function stripFrontmatter(content) {
+  const openMatch = content.match(/^---[ \t]*(?:\r?\n)/);
+  if (!openMatch) return content;
+  const rest = content.slice(openMatch[0].length);
+  const closeMatch = rest.match(/^---[ \t]*$/m);
+  if (!closeMatch) return content;
+  return rest.slice(closeMatch.index + closeMatch[0].length).replace(/^\r?\n/, '');
 }
 
 /** Extract the first H1 heading from markdown content. */
@@ -241,6 +251,10 @@ async function main() {
       );
 
       const pages = [];
+      /** @type {Record<string, { label: string, order: number }>} */
+      const sections = {};
+      /** @type {Record<string, { label: string, order: number }>} */
+      const subsections = {};
 
       // Process and write markdown files
       for (const fullPath of mdFiles) {
@@ -251,8 +265,9 @@ async function main() {
           continue;
         }
 
-        const rewritten = rewriteContent(content, relPath, version);
         const { data: fm } = parseFrontmatter(content);
+        const body = stripFrontmatter(content);
+        const rewritten = rewriteContent(body, relPath, version);
         const title =
           fm.title || fm.sidebar_label || extractTitle(content) || relPath.replace(/\.md$/, '');
         const slug = fileToSlug(relPath);
@@ -261,14 +276,32 @@ async function main() {
         fs.mkdirSync(path.dirname(outPath), { recursive: true });
         fs.writeFileSync(outPath, rewritten, 'utf8');
 
-        /** @type {{ slug: string[], title: string, file: string, description?: string }} */
+        /** @type {{ slug: string[], title: string, file: string, description?: string, subtitle?: string, section?: string, subsection?: string, order?: number }} */
         const pageEntry = {
           slug,
           title,
           file: path.posix.join('src', 'generated', 'docs', version, relPath),
         };
         if (fm.description) pageEntry.description = fm.description;
+        if (fm.subtitle) pageEntry.subtitle = fm.subtitle;
+        if (fm.section) pageEntry.section = fm.section;
+        if (fm.subsection) pageEntry.subsection = fm.subsection;
+        if (fm.order !== undefined && fm.order !== '') pageEntry.order = Number(fm.order);
         pages.push(pageEntry);
+
+        // Collect section/subsection registry metadata from index pages
+        if (fm.section_label && fm.section) {
+          sections[fm.section] = {
+            label: fm.section_label,
+            order: fm.section_order !== undefined ? Number(fm.section_order) : 999,
+          };
+        }
+        if (fm.subsection_label && fm.subsection) {
+          subsections[fm.subsection] = {
+            label: fm.subsection_label,
+            order: fm.subsection_order !== undefined ? Number(fm.subsection_order) : 999,
+          };
+        }
       }
 
       // Copy binary static assets
@@ -284,7 +317,7 @@ async function main() {
         fs.writeFileSync(outPath, data);
       }
 
-      manifest.byVersion[version] = { pages };
+      manifest.byVersion[version] = { pages, sections, subsections };
     }
 
     // Resolve defaultVersion: latest semver tag with pages, falling back to 'main'
