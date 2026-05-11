@@ -32,12 +32,14 @@ export async function generateStaticParams() {
       }
 
       const aliasSlug = canonicalDocSlug(page.slug);
-      if (aliasSlug.length > 0) {
-        const aliasKey = `${version}:${aliasSlug.join('/')}`;
-        if (!seen.has(aliasKey)) {
-          seen.add(aliasKey);
-          result.push({ version, slug: aliasSlug });
-        }
+      const staticAliasSlug =
+        aliasSlug.length === 0 && page.slug.length === 1 && page.slug[0] === 'index'
+          ? ['index']
+          : aliasSlug;
+      const aliasKey = `${version}:${staticAliasSlug.join('/')}`;
+      if (!seen.has(aliasKey)) {
+        seen.add(aliasKey);
+        result.push({ version, slug: staticAliasSlug });
       }
     }
     // Always include a fallback index entry per version even if no pages

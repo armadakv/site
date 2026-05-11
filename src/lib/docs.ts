@@ -90,6 +90,7 @@ export function getDocHref(version: string, slug: string[]): string {
 }
 
 function getSlugCandidates(slug: string[]): string[] {
+  // Canonical `/docs/<version>` routes resolve to the root `index` markdown page.
   if (!slug.length) {
     return ['index'];
   }
