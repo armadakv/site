@@ -21,7 +21,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SITE_ROOT = path.resolve(__dirname, '..');
 const ARMADA_LOCAL = path.resolve(SITE_ROOT, '..', 'armada');
 const ARMADA_REMOTE = 'https://github.com/armadakv/armada.git';
-const CURRENT_RELEASE = 'v0.10.0';
 const SEMVER_RE = /^v\d+\.\d+/;
 
 function run(cmd, opts = {}) {

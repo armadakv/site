@@ -119,6 +119,56 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Explore more */}
+      <section className="border-t border-slate-100 bg-slate-50 px-6 py-16 dark:border-slate-800 dark:bg-slate-900">
+        <div className="mx-auto max-w-screen-xl">
+          <h2 className="mb-10 text-center text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+            Learn more
+          </h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            {[
+              {
+                href: '/use-cases',
+                title: 'Use Cases',
+                description:
+                  'Config distribution, feature flags, edge caching — see where Armada fits in your stack.',
+                cta: 'Explore use cases →',
+              },
+              {
+                href: '/architecture',
+                title: 'Architecture',
+                description:
+                  'Hub-and-spoke topology, multi-group Raft, MVCC versioning — understand how Armada works.',
+                cta: 'See how it works →',
+              },
+              {
+                href: '/ecosystem',
+                title: 'Ecosystem',
+                description:
+                  'Official Go and Java clients, community tools, and the gRPC API surface.',
+                cta: 'Browse the ecosystem →',
+              },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="group flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-6 transition-colors hover:border-blue-400 dark:border-slate-700 dark:bg-slate-950 dark:hover:border-blue-500"
+              >
+                <h3 className="font-semibold text-slate-900 group-hover:text-blue-600 dark:text-slate-50 dark:group-hover:text-blue-400">
+                  {item.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                  {item.description}
+                </p>
+                <span className="mt-auto text-sm font-medium text-blue-600 dark:text-blue-400">
+                  {item.cta}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white px-6 py-8 dark:border-slate-800 dark:bg-slate-950">
         <div className="mx-auto flex max-w-screen-xl flex-col items-center justify-between gap-4 text-sm text-slate-500 sm:flex-row dark:text-slate-400">

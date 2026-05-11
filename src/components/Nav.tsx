@@ -28,6 +28,15 @@ export default function Nav() {
           Armada KV
         </Link>
         <nav className="flex items-center gap-6 text-sm font-medium text-slate-300">
+          <Link href="/use-cases" className="transition-colors hover:text-white">
+            Use Cases
+          </Link>
+          <Link href="/architecture" className="transition-colors hover:text-white">
+            Architecture
+          </Link>
+          <Link href="/ecosystem" className="transition-colors hover:text-white">
+            Ecosystem
+          </Link>
           <Link href="/docs" className="transition-colors hover:text-white">
             Docs
           </Link>
