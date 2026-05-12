@@ -10,9 +10,8 @@ export function getDocSlugKey(slug: string[]): string {
   return canonicalDocSlug(slug).join('/');
 }
 
-/** Builds the canonical docs URL path for a version + slug pair. */
+/** Builds the docs URL path for a version + slug pair. */
 export function getDocHref(version: string, slug: string[]): string {
-  const canonical = canonicalDocSlug(slug);
   const base = `/docs/${version}`;
-  return canonical.length > 0 ? `${base}/${canonical.join('/')}` : base;
+  return slug.length > 0 ? `${base}/${slug.join('/')}` : base;
 }

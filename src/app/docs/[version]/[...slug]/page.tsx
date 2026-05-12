@@ -1,4 +1,4 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
@@ -7,8 +7,6 @@ import {
   getSidebarSections,
   getAdjacentPages,
   getDocHref,
-  getDocSlugKey,
-  canonicalDocSlug,
 } from '@/lib/docs';
 import DocsSidebar from '@/components/DocsSidebar';
 import DocsContent from '@/components/DocsContent';
@@ -19,27 +17,16 @@ interface PageProps {
 
 export async function generateStaticParams() {
   const manifest = getManifest();
-  const seen = new Set<string>();
   const result: { version: string; slug: string[] }[] = [];
-  const addStaticParam = (version: string, slug: string[]) => {
-    const key = `${version}:${slug.join('/')}`;
-    if (seen.has(key)) return;
-    seen.add(key);
-    result.push({ version, slug });
-  };
 
   for (const version of manifest.versions) {
     const pages = manifest.byVersion[version]?.pages ?? [];
     for (const page of pages) {
-      addStaticParam(version, page.slug);
-
-      const aliasSlug = canonicalDocSlug(page.slug);
-      const staticParamSlug = aliasSlug.length === 0 ? ['index'] : aliasSlug;
-      addStaticParam(version, staticParamSlug);
+      result.push({ version, slug: page.slug });
     }
     // Always include a fallback index entry per version even if no pages
     if (!pages.length) {
-      addStaticParam(version, ['index']);
+      result.push({ version, slug: ['index'] });
     }
   }
 
@@ -85,12 +72,6 @@ export default async function DocsPage({ params }: PageProps) {
       return <EmptyVersion version={version} manifest={manifest} />;
     }
     notFound();
-  }
-
-  const canonicalSlugKey = getDocSlugKey(doc.page.slug);
-  const requestedSlugKey = slug.join('/');
-  if (requestedSlugKey !== canonicalSlugKey) {
-    redirect(getDocHref(version, doc.page.slug));
   }
 
   const resolvedSlug = doc.page.slug;
