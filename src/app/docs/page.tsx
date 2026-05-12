@@ -9,7 +9,5 @@ export default function DocsIndexPage() {
     manifest.versions.find((v) => (manifest.byVersion[v]?.pages?.length ?? 0) > 0) ??
     manifest.defaultVersion;
 
-  const versionPages = manifest.byVersion[version]?.pages;
-  const firstSlug = versionPages?.length ? versionPages[0].slug.join('/') : 'index';
-  redirect(`/docs/${version}/${firstSlug}`);
+  redirect(`/docs/${version}`);
 }

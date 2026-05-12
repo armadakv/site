@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getManifest, getDocPage, getSidebarSections, getAdjacentPages } from '@/lib/docs';
 import DocsSidebar from '@/components/DocsSidebar';
+import DocsMobileNav from '@/components/DocsMobileNav';
 import DocsContent from '@/components/DocsContent';
 
 interface PageProps {
@@ -17,6 +18,10 @@ export async function generateStaticParams() {
     const pages = manifest.byVersion[version]?.pages ?? [];
     for (const page of pages) {
       result.push({ version, slug: page.slug });
+      // Also register the clean URL (without trailing /index)
+      if (page.slug[page.slug.length - 1] === 'index' && page.slug.length > 1) {
+        result.push({ version, slug: page.slug.slice(0, -1) });
+      }
     }
     // Always include a fallback index entry per version even if no pages
     if (!pages.length) {
@@ -69,12 +74,20 @@ export default async function DocsPage({ params }: PageProps) {
   }
 
   const resolvedSlug = doc.page.slug;
+
   const sections = getSidebarSections(version);
   const { prev, next } = getAdjacentPages(version, resolvedSlug);
   const editUrl = getGitHubEditUrl(version, doc.page.file);
 
   return (
     <div className="flex flex-1 flex-col">
+      {/* Mobile sidebar drawer */}
+      <DocsMobileNav
+        sections={sections}
+        currentSlug={resolvedSlug}
+        currentVersion={version}
+        versions={manifest.versions}
+      />
       <div className="mx-auto flex w-full max-w-screen-xl flex-1">
         {/* Sidebar - hidden on mobile */}
         <div className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-64 shrink-0 border-r border-slate-200 lg:block dark:border-slate-800">
@@ -189,7 +202,7 @@ function EmptyVersion({
           This version predates the documentation system. Try a newer version.
         </p>
         <Link
-          href={`/docs/${manifest.defaultVersion}/index`}
+          href={`/docs/${manifest.defaultVersion}`}
           className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
         >
           Go to latest docs
