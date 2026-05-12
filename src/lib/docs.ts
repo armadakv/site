@@ -77,11 +77,6 @@ export function getDocPage(
 export { canonicalDocSlug, getDocSlugKey, getDocHref };
 
 function getSlugCandidates(slug: string[]): string[] {
-  // Empty slug arrays (from `/docs/<version>` routes) resolve to the root `index` markdown page.
-  if (!slug.length) {
-    return ['index'];
-  }
-
   const normalized = [...slug];
   const lastIndex = normalized.length - 1;
   normalized[lastIndex] = normalized[lastIndex].replace(/\.md$/, '');

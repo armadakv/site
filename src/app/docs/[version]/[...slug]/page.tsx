@@ -24,10 +24,6 @@ export async function generateStaticParams() {
     for (const page of pages) {
       result.push({ version, slug: page.slug });
     }
-    // Always include a fallback index entry per version even if no pages
-    if (!pages.length) {
-      result.push({ version, slug: ['index'] });
-    }
   }
 
   return result;
@@ -66,11 +62,6 @@ export default async function DocsPage({ params }: PageProps) {
 
   const doc = getDocPage(version, slug);
   if (!doc) {
-    // If version has no pages, show a friendly message
-    const hasPages = (manifest.byVersion[version]?.pages?.length ?? 0) > 0;
-    if (!hasPages) {
-      return <EmptyVersion version={version} manifest={manifest} />;
-    }
     notFound();
   }
 
@@ -173,33 +164,6 @@ export default async function DocsPage({ params }: PageProps) {
             </div>
           )}
         </main>
-      </div>
-    </div>
-  );
-}
-
-function EmptyVersion({
-  version,
-  manifest,
-}: {
-  version: string;
-  manifest: ReturnType<typeof getManifest>;
-}) {
-  return (
-    <div className="flex flex-1 items-center justify-center px-6 py-24">
-      <div className="max-w-md text-center">
-        <h1 className="mb-3 text-2xl font-bold text-slate-800 dark:text-slate-100">
-          No documentation for {version}
-        </h1>
-        <p className="mb-8 text-slate-500 dark:text-slate-400">
-          This version predates the documentation system. Try a newer version.
-        </p>
-        <Link
-          href={getDocHref(manifest.defaultVersion, ['index'])}
-          className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
-        >
-          Go to latest docs
-        </Link>
       </div>
     </div>
   );
