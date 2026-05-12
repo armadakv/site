@@ -7,6 +7,18 @@ import { SidebarSection, SidebarSubsection, DocPage } from '@/lib/docs';
 
 const SCROLL_KEY = 'docs-sidebar-scroll';
 
+/** Drop a trailing 'index' segment from a slug array. */
+function stripIndex(slug: string[] | undefined): string[] {
+  if (!slug) return [];
+  return slug[slug.length - 1] === 'index' ? slug.slice(0, -1) : slug;
+}
+
+/** Build a clean doc href, omitting trailing /index. */
+function docHref(version: string, slug: string[]): string {
+  const parts = stripIndex(slug);
+  return parts.length > 0 ? `/docs/${version}/${parts.join('/')}` : `/docs/${version}`;
+}
+
 interface DocsSidebarProps {
   sections: SidebarSection[];
   currentSlug: string[];
@@ -21,7 +33,8 @@ export default function DocsSidebar({
   versions,
 }: DocsSidebarProps) {
   const router = useRouter();
-  const currentSlugKey = currentSlug.join('/');
+  // Normalise: drop trailing 'index' so active-state comparisons work with clean URLs
+  const currentSlugKey = stripIndex(currentSlug).join('/');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Restore saved scroll position on mount
@@ -43,7 +56,8 @@ export default function DocsSidebar({
 
   function handleVersionChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newVersion = e.target.value;
-    router.push(`/docs/${newVersion}/${currentSlugKey}`);
+    const target = currentSlugKey ? `/docs/${newVersion}/${currentSlugKey}` : `/docs/${newVersion}`;
+    router.push(target);
   }
 
   return (
@@ -96,7 +110,7 @@ function SidebarSectionComponent({
   currentSlugKey: string;
   version: string;
 }) {
-  const indexIsActive = section.indexPage?.slug.join('/') === currentSlugKey;
+  const indexIsActive = stripIndex(section.indexPage?.slug).join('/') === currentSlugKey;
 
   return (
     <div>
@@ -104,7 +118,7 @@ function SidebarSectionComponent({
       <div className="mb-0.5">
         {section.indexPage ? (
           <Link
-            href={`/docs/${version}/${section.indexPage.slug.join('/')}`}
+            href={docHref(version, section.indexPage.slug)}
             className={`block rounded-md px-2 py-1.5 text-xs font-semibold tracking-wider uppercase transition-colors ${
               indexIsActive
                 ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
@@ -128,7 +142,7 @@ function SidebarSectionComponent({
               key={page.slug.join('/')}
               page={page}
               version={version}
-              isActive={page.slug.join('/') === currentSlugKey}
+              isActive={stripIndex(page.slug).join('/') === currentSlugKey}
             />
           ))}
         </ul>
@@ -156,7 +170,7 @@ function SidebarSubsectionComponent({
   currentSlugKey: string;
   version: string;
 }) {
-  const indexIsActive = subsection.indexPage?.slug.join('/') === currentSlugKey;
+  const indexIsActive = stripIndex(subsection.indexPage?.slug).join('/') === currentSlugKey;
 
   return (
     <div className="mt-1 pl-2">
@@ -164,7 +178,7 @@ function SidebarSubsectionComponent({
       <div className="mb-0.5">
         {subsection.indexPage ? (
           <Link
-            href={`/docs/${version}/${subsection.indexPage.slug.join('/')}`}
+            href={docHref(version, subsection.indexPage.slug)}
             className={`flex items-center rounded-md px-2 py-1.5 text-sm transition-colors ${
               indexIsActive
                 ? 'bg-blue-50 font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
@@ -187,7 +201,7 @@ function SidebarSubsectionComponent({
             key={page.slug.join('/')}
             page={page}
             version={version}
-            isActive={page.slug.join('/') === currentSlugKey}
+            isActive={stripIndex(page.slug).join('/') === currentSlugKey}
           />
         ))}
       </ul>
@@ -204,12 +218,10 @@ function SidebarLink({
   version: string;
   isActive: boolean;
 }) {
-  const href = `/docs/${version}/${page.slug.join('/')}`;
-
   return (
     <li>
       <Link
-        href={href}
+        href={docHref(version, page.slug)}
         className={`flex items-center rounded-md px-2 py-1.5 text-sm transition-colors ${
           isActive
             ? 'bg-blue-50 font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'

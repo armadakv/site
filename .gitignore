@@ -43,3 +43,10 @@ next-env.d.ts
 # generated docs (produced at build time)
 /public/docs-static/
 /src/generated/
+
+# IDEs
+/idea
+
+# Netlify CLI
+.netlify
+deno.lock
