@@ -45,67 +45,68 @@ export default function ArchitecturePage() {
             {/* Topology diagram */}
             <div className="mx-auto mb-10 flex max-w-xl flex-col items-center">
               <svg
-                viewBox="0 0 420 280"
+                viewBox="0 0 420 300"
                 className="w-full max-w-lg"
                 aria-label="Hub-and-spoke topology diagram"
               >
                 {/* Spoke lines */}
                 <line
                   x1="210"
-                  y1="100"
-                  x2="60"
+                  y1="110"
+                  x2="70"
                   y2="210"
-                  stroke="#334155"
+                  stroke="#E85A2C"
                   strokeWidth="2"
                   strokeDasharray="6 4"
                 />
                 <line
                   x1="210"
-                  y1="100"
+                  y1="110"
                   x2="210"
-                  y2="230"
-                  stroke="#334155"
+                  y2="220"
+                  stroke="#E85A2C"
                   strokeWidth="2"
                   strokeDasharray="6 4"
                 />
                 <line
                   x1="210"
-                  y1="100"
-                  x2="360"
+                  y1="110"
+                  x2="350"
                   y2="210"
-                  stroke="#334155"
+                  stroke="#E85A2C"
                   strokeWidth="2"
                   strokeDasharray="6 4"
                 />
-                {/* Leader node */}
-                <polygon
-                  points="210,50 250,75 250,125 210,150 170,125 170,75"
-                  fill="#1e3a5f"
-                  stroke="#3b82f6"
-                  strokeWidth="2"
-                />
-                <circle cx="210" cy="100" r="10" fill="#3b82f6" />
+                {/* Leader node — mono white mark */}
                 <text
                   x="210"
-                  y="170"
+                  y="36"
                   textAnchor="middle"
-                  fill="#94a3b8"
+                  fill="#E85A2C"
                   fontSize="12"
+                  fontWeight="600"
                   fontFamily="system-ui"
                 >
                   Leader
                 </text>
-                {/* Follower nodes */}
-                <polygon
-                  points="60,185 85,198 85,222 60,235 35,222 35,198"
-                  fill="#1e293b"
-                  stroke="#475569"
-                  strokeWidth="1.5"
+                <image
+                  href="/logos/svg/mark-mono-white.svg"
+                  x="162"
+                  y="46"
+                  width="96"
+                  height="84"
                 />
-                <circle cx="60" cy="210" r="7" fill="#64748b" />
+                {/* Follower nodes — mono navy mark */}
+                <image
+                  href="/logos/svg/mark-mono-white.svg"
+                  x="32"
+                  y="196"
+                  width="76"
+                  height="66"
+                />
                 <text
-                  x="60"
-                  y="252"
+                  x="70"
+                  y="275"
                   textAnchor="middle"
                   fill="#94a3b8"
                   fontSize="11"
@@ -113,16 +114,16 @@ export default function ArchitecturePage() {
                 >
                   Follower
                 </text>
-                <polygon
-                  points="210,205 235,218 235,242 210,255 185,242 185,218"
-                  fill="#1e293b"
-                  stroke="#475569"
-                  strokeWidth="1.5"
+                <image
+                  href="/logos/svg/mark-mono-white.svg"
+                  x="172"
+                  y="206"
+                  width="76"
+                  height="66"
                 />
-                <circle cx="210" cy="230" r="7" fill="#64748b" />
                 <text
                   x="210"
-                  y="272"
+                  y="285"
                   textAnchor="middle"
                   fill="#94a3b8"
                   fontSize="11"
@@ -130,16 +131,16 @@ export default function ArchitecturePage() {
                 >
                   Follower
                 </text>
-                <polygon
-                  points="360,185 385,198 385,222 360,235 335,222 335,198"
-                  fill="#1e293b"
-                  stroke="#475569"
-                  strokeWidth="1.5"
+                <image
+                  href="/logos/svg/mark-mono-white.svg"
+                  x="312"
+                  y="196"
+                  width="76"
+                  height="66"
                 />
-                <circle cx="360" cy="210" r="7" fill="#64748b" />
                 <text
-                  x="360"
-                  y="252"
+                  x="350"
+                  y="275"
                   textAnchor="middle"
                   fill="#94a3b8"
                   fontSize="11"
