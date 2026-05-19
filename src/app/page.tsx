@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 const features = [
   {
@@ -35,25 +36,15 @@ export default function HomePage() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/30 via-transparent to-transparent" />
         <div className="relative mx-auto max-w-3xl">
           <div className="mb-6 flex justify-center">
-            <svg
-              width="56"
-              height="56"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-              className="text-blue-400"
-            >
-              <polygon
-                points="12,2 22,8 22,16 12,22 2,16 2,8"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                fill="currentColor"
-                fillOpacity="0.2"
-              />
-              <circle cx="12" cy="12" r="3.5" fill="currentColor" />
-            </svg>
+            <Image
+              src="/logos/svg/full-dark.svg"
+              alt="Armada KV"
+              width={320}
+              height={280}
+              priority
+              style={{ height: 'auto' }}
+            />
           </div>
-          <h1 className="mb-4 text-4xl font-bold tracking-tight text-white sm:text-6xl">Armada</h1>
           <p className="mb-6 text-xl font-medium text-blue-300 sm:text-2xl">
             Distributed Key-Value Store for Kubernetes
           </p>

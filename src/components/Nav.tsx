@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
 const links = [
@@ -23,23 +24,14 @@ export default function Nav() {
           onClick={() => setOpen(false)}
           className="flex items-center gap-2 text-lg font-bold tracking-tight text-white transition-colors hover:text-blue-400"
         >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            aria-hidden="true"
-            className="text-blue-400"
-          >
-            <polygon
-              points="12,2 22,8 22,16 12,22 2,16 2,8"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              fill="currentColor"
-              fillOpacity="0.15"
-            />
-            <circle cx="12" cy="12" r="3" fill="currentColor" />
-          </svg>
+          <Image
+            src="/logos/svg/mark-mono-white.svg"
+            alt="Armada KV"
+            width={28}
+            height={28}
+            className="shrink-0"
+            style={{ height: 'auto' }}
+          />
           Armada KV
         </Link>
 
