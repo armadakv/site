@@ -14,7 +14,6 @@ const clients = [
     description:
       'Official Go client library. Provides a high-level API for KV operations, table management, and watch streams.',
     href: 'https://github.com/armadakv/armada-go',
-    note: 'Published under legacy regatta-go module path.',
   },
   {
     name: 'armada-java-core',
@@ -22,7 +21,7 @@ const clients = [
     langColor: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
     description:
       'Official low-level JVM client built on top of the generated gRPC stubs. Works with any JVM language.',
-    href: 'https://github.com/armadakv/armada-java/tree/main/regatta-java-core',
+    href: 'https://github.com/armadakv/armada-java',
     note: 'Artifact still published as regatta-java-core.',
   },
   {
@@ -31,27 +30,38 @@ const clients = [
     langColor: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
     description:
       'Spring Data integration for Armada. Use familiar Repository abstractions to interact with the KV store.',
-    href: 'https://github.com/armadakv/armada-java/tree/main/regatta-java-spring-data',
+    href: 'https://github.com/armadakv/armada-java',
     note: 'Artifact still published as regatta-java-spring-data.',
   },
 ];
 
-const tools = [
+const uiClients = [
   {
-    name: 'regatta-console',
+    name: 'armada-console',
     category: 'Web UI',
     description:
-      'Unofficial web console for querying and administering an Armada cluster. Browse tables, run queries, inspect cluster state.',
-    href: 'https://github.com/coufalja/regatta-console',
-    author: 'coufalja',
+      'Web-based graphical console for Armada. Browse tables, run KV queries, and inspect cluster state directly from your browser.',
+    href: 'https://github.com/armadakv/console',
+    comingSoon: false,
   },
+];
+
+const cliClients = [
   {
-    name: 'regatta-client',
+    name: 'arq',
     category: 'CLI',
     description:
-      'Unofficial command-line client for querying and manipulating the Armada store. Useful for ad-hoc inspection and scripting.',
-    href: 'https://github.com/Tantalor93/regatta-client',
-    author: 'Tantalor93',
+      'The query and data-plane CLI. Covers KV reads, writes, watches, and transactions. Transaction UX follows the familiar etcdctl txn model with cmp / then / else sections.',
+    href: 'https://github.com/armadakv/armada',
+    comingSoon: true,
+  },
+  {
+    name: 'arctl',
+    category: 'CLI',
+    description:
+      'The control-plane and maintenance CLI. Handles backup, restore, reset, and cluster/table administration — keeping operational commands separate from application KV access.',
+    href: 'https://github.com/armadakv/armada',
+    comingSoon: true,
   },
 ];
 
@@ -141,23 +151,28 @@ export default function EcosystemPage() {
                     >
                       <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
                     </svg>
-                    github.com/armadakv
+                    {c.href.replace('https://github.com/', '')}
                   </div>
                 </a>
               ))}
             </div>
           </section>
 
-          {/* Community tools */}
+          {/* Graphical & CLI clients */}
           <section>
             <h2 className="mb-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-              Community Tools
+              Graphical &amp; CLI Clients
             </h2>
             <p className="mb-8 text-slate-500 dark:text-slate-400">
-              Built by community contributors. Not officially maintained by the Armada team.
+              First-class tools for interacting with Armada — from a browser-based console to
+              purpose-built CLI binaries for query and administration workflows.
             </p>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {tools.map((t) => (
+
+            <h3 className="mb-4 text-sm font-semibold tracking-widest text-slate-400 uppercase">
+              Web Console
+            </h3>
+            <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-2">
+              {uiClients.map((t) => (
                 <a
                   key={t.name}
                   href={t.href}
@@ -169,15 +184,57 @@ export default function EcosystemPage() {
                     <span className="font-mono text-sm font-semibold text-slate-900 group-hover:text-blue-600 dark:text-slate-50 dark:group-hover:text-blue-400">
                       {t.name}
                     </span>
-                    <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                    <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
                       {t.category}
                     </span>
                   </div>
                   <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                     {t.description}
                   </p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">by {t.author}</p>
+                  <div className="mt-auto flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                    <svg
+                      viewBox="0 0 16 16"
+                      width="12"
+                      height="12"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+                    </svg>
+                    {t.href.replace('https://github.com/', '')}
+                  </div>
                 </a>
+              ))}
+            </div>
+
+            <h3 className="mb-4 text-sm font-semibold tracking-widest text-slate-400 uppercase">
+              CLI Tools
+            </h3>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {cliClients.map((t) => (
+                <div
+                  key={t.name}
+                  className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-sm font-semibold text-slate-900 dark:text-slate-50">
+                      {t.name}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {t.comingSoon && (
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                          Coming soon
+                        </span>
+                      )}
+                      <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                        {t.category}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                    {t.description}
+                  </p>
+                </div>
               ))}
             </div>
           </section>
