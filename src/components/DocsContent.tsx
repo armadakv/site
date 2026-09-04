@@ -1,6 +1,8 @@
+import { isValidElement } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Components } from 'react-markdown';
+import MermaidDiagram from './MermaidDiagram';
 
 interface DocsContentProps {
   content: string;
@@ -94,17 +96,26 @@ const components: Components = {
         </code>
       );
     }
+    if (className?.includes('language-mermaid')) {
+      return <MermaidDiagram chart={String(children)} />;
+    }
     return (
       <code className={`${className ?? ''} font-mono text-sm`} {...props}>
         {children}
       </code>
     );
   },
-  pre: ({ children }) => (
-    <pre className="mb-4 overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-4 font-mono text-sm text-slate-100 dark:bg-slate-950">
-      {children}
-    </pre>
-  ),
+  pre: ({ children }) => {
+    // Mermaid diagrams render their own container, so skip the code-block styling.
+    if (isValidElement(children) && children.type === MermaidDiagram) {
+      return <>{children}</>;
+    }
+    return (
+      <pre className="mb-4 overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-4 font-mono text-sm text-slate-100 dark:bg-slate-950">
+        {children}
+      </pre>
+    );
+  },
   table: ({ children }) => (
     <div className="mb-4 overflow-x-auto">
       <table className="min-w-full border-collapse text-sm text-slate-700 dark:text-slate-300">
