@@ -53,7 +53,7 @@ const cliClients = [
     description:
       'The query and data-plane CLI. Covers KV reads, writes, watches, and transactions. Transaction UX follows the familiar etcdctl txn model with cmp / then / else sections.',
     href: 'https://github.com/armadakv/armada',
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     name: 'arctl',
@@ -61,7 +61,7 @@ const cliClients = [
     description:
       'The control-plane and maintenance CLI. Handles backup, restore, reset, and cluster/table administration — keeping operational commands separate from application KV access.',
     href: 'https://github.com/armadakv/armada',
-    comingSoon: true,
+    comingSoon: false,
   },
 ];
 
