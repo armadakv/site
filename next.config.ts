@@ -2,6 +2,10 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  reactCompiler: true,
+  experimental: {
+    turbopackRustReactCompiler: true,
+  },
   // Images from docs static assets served from /public
   images: {
     unoptimized: true,
