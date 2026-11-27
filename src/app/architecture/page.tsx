@@ -1,5 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { TopologyAnimation } from '@/components/TopologyAnimation';
+import WritePathAnimation from '@/components/WritePathAnimation';
+import TablesAnimation from '@/components/TablesAnimation';
+import RecoveryAnimation from '@/components/RecoveryAnimation';
 
 export const metadata: Metadata = {
   title: 'Architecture',
@@ -42,117 +46,7 @@ export default function ArchitecturePage() {
               </p>
             </div>
 
-            {/* Topology diagram */}
-            <div className="mx-auto mb-10 flex max-w-xl flex-col items-center">
-              <svg
-                viewBox="0 0 420 300"
-                className="w-full max-w-lg"
-                aria-label="Hub-and-spoke topology diagram"
-              >
-                {/* Spoke lines */}
-                <line
-                  x1="210"
-                  y1="110"
-                  x2="70"
-                  y2="210"
-                  stroke="#E85A2C"
-                  strokeWidth="2"
-                  strokeDasharray="6 4"
-                />
-                <line
-                  x1="210"
-                  y1="110"
-                  x2="210"
-                  y2="220"
-                  stroke="#E85A2C"
-                  strokeWidth="2"
-                  strokeDasharray="6 4"
-                />
-                <line
-                  x1="210"
-                  y1="110"
-                  x2="350"
-                  y2="210"
-                  stroke="#E85A2C"
-                  strokeWidth="2"
-                  strokeDasharray="6 4"
-                />
-                {/* Leader node — mono white mark */}
-                <text
-                  x="210"
-                  y="36"
-                  textAnchor="middle"
-                  fill="#E85A2C"
-                  fontSize="12"
-                  fontWeight="600"
-                  fontFamily="system-ui"
-                >
-                  Leader
-                </text>
-                <image
-                  href="/logos/svg/mark-mono-white.svg"
-                  x="162"
-                  y="46"
-                  width="96"
-                  height="84"
-                />
-                {/* Follower nodes — mono navy mark */}
-                <image
-                  href="/logos/svg/mark-mono-white.svg"
-                  x="32"
-                  y="196"
-                  width="76"
-                  height="66"
-                />
-                <text
-                  x="70"
-                  y="275"
-                  textAnchor="middle"
-                  fill="#94a3b8"
-                  fontSize="11"
-                  fontFamily="system-ui"
-                >
-                  Follower
-                </text>
-                <image
-                  href="/logos/svg/mark-mono-white.svg"
-                  x="172"
-                  y="206"
-                  width="76"
-                  height="66"
-                />
-                <text
-                  x="210"
-                  y="285"
-                  textAnchor="middle"
-                  fill="#94a3b8"
-                  fontSize="11"
-                  fontFamily="system-ui"
-                >
-                  Follower
-                </text>
-                <image
-                  href="/logos/svg/mark-mono-white.svg"
-                  x="312"
-                  y="196"
-                  width="76"
-                  height="66"
-                />
-                <text
-                  x="350"
-                  y="275"
-                  textAnchor="middle"
-                  fill="#94a3b8"
-                  fontSize="11"
-                  fontFamily="system-ui"
-                >
-                  Follower
-                </text>
-              </svg>
-              <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-500">
-                Dashed lines = asynchronous pull replication
-              </p>
-            </div>
+            <TopologyAnimation />
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900">
@@ -171,8 +65,8 @@ export default function ArchitecturePage() {
                 </h3>
                 <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                   Pull changes from the leader asynchronously. Serve all reads locally with no
-                  cross-cluster round trip. Writes received by a follower are transparently
-                  forwarded to the leader.
+                  cross-cluster round trip. Writes received by a follower are forwarded to the
+                  leader, and acknowledged once the follower has applied them locally.
                 </p>
               </div>
             </div>
@@ -194,15 +88,15 @@ export default function ArchitecturePage() {
               {[
                 {
                   title: 'Majority quorum',
-                  body: 'A 3-node cluster survives one node failure. A 5-node cluster survives two. Raft guarantees no data loss as long as a majority of nodes are reachable.',
+                  body: 'A 3-node cluster survives one node failure. A 5-node cluster survives two. Committed writes are not lost as long as a majority of nodes are reachable, which also makes rolling updates routine.',
                 },
                 {
                   title: 'Multi-group',
-                  body: 'Each table is its own Raft group. This allows write throughput to scale with the number of tables rather than being bottlenecked by a single log.',
+                  body: 'Each table is its own Raft group with its own leader and log, so tables commit independently and write throughput is not bottlenecked by a single log.',
                 },
                 {
                   title: 'QUIC transport',
-                  body: 'Inter-node replication uses a QUIC-based transport for low-latency, multiplexed streams between cluster members — no head-of-line blocking.',
+                  body: 'Raft traffic and gossip-based peer discovery share a single QUIC (UDP) socket, with multiplexed streams between members and no static member list to maintain.',
                 },
               ].map((item) => (
                 <div
@@ -227,11 +121,12 @@ export default function ArchitecturePage() {
                 Tables — Isolated Keyspaces
               </h2>
               <p className="mx-auto max-w-2xl text-slate-500 dark:text-slate-400">
-                Data in Armada is organized into tables. Each table is an independent namespace with
-                its own Raft group and its own replication stream. Tables can be created and deleted
-                dynamically without affecting other tables.
+                Data in Armada is organized into tables. Each table is its own Raft group with its
+                own leader, its own revision counter and its own replication stream. When a node
+                fails, only the tables whose leader was on that node pause for an election.
               </p>
             </div>
+            <TablesAnimation />
             <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
               <table className="w-full text-sm">
                 <thead className="bg-slate-100 dark:bg-slate-800">
@@ -248,27 +143,27 @@ export default function ArchitecturePage() {
                   {[
                     [
                       'Isolation',
-                      'Each table has its own Raft group — a failure in one table does not affect others.',
+                      'Each table has its own Raft group, so an election or a slow table does not hold up the others.',
                     ],
                     [
                       'Consistency scope',
-                      'All API guarantees (linearizable reads, transactions) are scoped to a single table.',
+                      'All API guarantees (transactions, linearizable reads, revisions) are scoped to a single table; there is no ordering across tables. Reads are served locally by default; a linearizable read is relative to the cluster that serves it.',
+                    ],
+                    [
+                      'Lifecycle',
+                      'Tables are created and deleted at runtime through the Tables API on the leader cluster. Follower clusters pick them up automatically.',
                     ],
                     [
                       'Replication unit',
-                      'The cross-cluster replication stream is per-table, enabling fine-grained follower lag monitoring.',
+                      'Each follower runs one replication stream per table, so lag and recovery are tracked, and happen, table by table.',
                     ],
                     [
                       'Storage engine',
-                      'Table data is persisted in Pebble (an LSM-tree storage engine), providing efficient range scans.',
-                    ],
-                    [
-                      'MVCC',
-                      'Writes are stamped with a monotonically increasing version derived from the Raft log index, enabling snapshot-isolated reads.',
+                      'Table data is persisted in Pebble, an LSM-tree engine, using the V2 key schema: every version of a key is stored next to its revisions, latest first, for fast point reads and range scans.',
                     ],
                   ].map(([prop, detail]) => (
                     <tr key={prop} className="bg-white dark:bg-slate-950">
-                      <td className="px-6 py-3 font-medium whitespace-nowrap text-slate-800 dark:text-slate-200">
+                      <td className="px-6 py-3 align-top font-medium whitespace-nowrap text-slate-800 dark:text-slate-200">
                         {prop}
                       </td>
                       <td className="px-6 py-3 text-slate-600 dark:text-slate-400">{detail}</td>
@@ -276,6 +171,147 @@ export default function ArchitecturePage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </section>
+
+          {/* Revisions and MVCC */}
+          <section>
+            <div className="mb-8 text-center">
+              <h2 className="mb-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-50">
+                Revisions &amp; MVCC
+              </h2>
+              <p className="mx-auto max-w-2xl text-slate-500 dark:text-slate-400">
+                Every write to a table gets the next revision of that table. Each key carries two of
+                them, and because followers store the leader&apos;s revision rather than their own,
+                the same write has the same revision in every cluster.
+              </p>
+            </div>
+
+            {/* One key's history */}
+            <div className="mb-8 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+              <table className="w-full min-w-[440px] text-sm">
+                <caption className="bg-slate-50 px-6 py-3 text-left text-slate-600 dark:bg-slate-900 dark:text-slate-400">
+                  History of the key <code className="font-mono text-xs">flags/dark-mode</code>
+                </caption>
+                <thead className="bg-slate-100 dark:bg-slate-800">
+                  <tr className="text-left text-slate-700 dark:text-slate-300">
+                    <th className="px-6 py-2 font-semibold">Table revision</th>
+                    <th className="px-6 py-2 font-semibold">Operation</th>
+                    <th className="px-6 py-2 font-semibold">
+                      <code className="font-mono text-xs">create_revision</code>
+                    </th>
+                    <th className="px-6 py-2 font-semibold">
+                      <code className="font-mono text-xs">mod_revision</code>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 font-mono text-xs dark:divide-slate-800">
+                  {[
+                    ['12', 'Put "off"', '12', '12', ''],
+                    ['30', 'Put "on"', '12', '30', ''],
+                    ['41', 'Delete', '—', '—', 'the key is gone; it compares as revision 0'],
+                    ['57', 'Put "on"', '57', '57', 'a new incarnation of the key'],
+                  ].map(([rev, op, create, mod, note]) => (
+                    <tr
+                      key={rev}
+                      className="bg-white text-slate-700 dark:bg-slate-950 dark:text-slate-300"
+                    >
+                      <td className="px-6 py-2 align-top">{rev}</td>
+                      <td className="px-6 py-2 align-top">
+                        {op}
+                        {note && (
+                          <span className="mt-0.5 block font-sans text-slate-500 dark:text-slate-400">
+                            {note}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-2 align-top">{create}</td>
+                      <td className="px-6 py-2 align-top">{mod}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              {[
+                {
+                  title: 'Query by revision',
+                  body: (
+                    <>
+                      <code className="font-mono text-xs">Range</code>,{' '}
+                      <code className="font-mono text-xs">IterateRange</code> and transaction ranges
+                      accept inclusive{' '}
+                      <code className="font-mono text-xs">min_/max_mod_revision</code> and{' '}
+                      <code className="font-mono text-xs">min_/max_create_revision</code> bounds
+                      (zero means unbounded). Asking for{' '}
+                      <code className="font-mono text-xs">min_mod_revision: 42</code> returns only
+                      keys changed since revision 42. Filters are evaluated before any value is
+                      read.
+                    </>
+                  ),
+                },
+                {
+                  title: 'Compare-and-swap on revisions',
+                  body: (
+                    <>
+                      Transactions can compare a key&apos;s{' '}
+                      <code className="font-mono text-xs">CREATE</code> or{' '}
+                      <code className="font-mono text-xs">MOD</code> revision, with etcd semantics.
+                      &ldquo;<code className="font-mono text-xs">mod_revision == 30</code>&rdquo;
+                      gives optimistic concurrency, and &ldquo;
+                      <code className="font-mono text-xs">create_revision == 0</code>&rdquo; means
+                      create only if absent.
+                    </>
+                  ),
+                },
+                {
+                  title: 'History with a horizon',
+                  body: (
+                    <>
+                      Older versions stay in Pebble until the table&apos;s GC horizon, which
+                      advances as the leader compacts its Raft log and is carried to follower
+                      clusters through replication. GC skips SST blocks that hold no expired
+                      versions. See the{' '}
+                      <Link
+                        href="/docs/main/v2_key_schema"
+                        className="text-blue-600 underline underline-offset-2 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        V2 key schema
+                      </Link>
+                      .
+                    </>
+                  ),
+                },
+                {
+                  title: 'Next: Watch',
+                  body: (
+                    <>
+                      There is no Watch API yet; clients poll with a revision filter.{' '}
+                      <Link
+                        href="/docs/main/proposals/007-watch-api"
+                        className="text-blue-600 underline underline-offset-2 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        RFC 007
+                      </Link>{' '}
+                      proposes an etcd-style Watch that streams changes live and replays them from
+                      these stored versions, on leader and follower clusters alike.
+                    </>
+                  ),
+                },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900"
+                >
+                  <h3 className="mb-2 font-semibold text-slate-900 dark:text-slate-50">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                    {item.body}
+                  </p>
+                </div>
+              ))}
             </div>
           </section>
 
@@ -289,52 +325,50 @@ export default function ArchitecturePage() {
                 From a client write to a follower read — here&apos;s what happens at each step.
               </p>
             </div>
-            <ol className="relative ml-4 border-l-2 border-slate-200 dark:border-slate-800">
+            <WritePathAnimation />
+          </section>
+
+          {/* Follower recovery */}
+          <section>
+            <div className="mb-8 text-center">
+              <h2 className="mb-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-50">
+                When a Follower Falls Too Far Behind
+              </h2>
+              <p className="mx-auto max-w-2xl text-slate-500 dark:text-slate-400">
+                A follower that was offline for longer than the leader keeps its log, back to the GC
+                horizon, cannot catch up entry by entry. It recovers that table from a snapshot
+                instead, and keeps serving reads from its existing data while it does.
+              </p>
+            </div>
+            <RecoveryAnimation />
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
               {[
                 {
-                  n: '1',
-                  title: 'Client sends a Put to the leader',
-                  body: 'The write arrives at any leader node via gRPC. If the receiving node is not the Raft leader for that table, it forwards internally.',
+                  title: 'Full or incremental',
+                  body: 'With a store configured, leaders export a full snapshot of each table periodically and an incremental one on every log compaction. A follower still inside an incremental snapshot’s range applies just the delta to its live shard; otherwise it loads a full one.',
                 },
                 {
-                  n: '2',
-                  title: 'Raft replicates within the leader cluster',
-                  body: 'The entry is appended to the Raft log and replicated to a majority of leader nodes. Once committed, the FSM applies it to Pebble.',
+                  title: 'Resumable, verified downloads',
+                  body: 'Downloads of stored artefacts continue from fsynced checkpoints after a dropped connection, a restart or power loss, and are verified by size and SHA-256. A live snapshot is regenerated per request, so it starts over.',
                 },
                 {
-                  n: '3',
-                  title: 'Leader acknowledges the client',
-                  body: 'The gRPC response is sent only after the write is durably committed by a quorum. No data loss on leader failure.',
+                  title: 'Built aside, then swapped in',
+                  body: 'The snapshot is loaded into a new shard whose replicas join as Raft learners and are promoted once caught up. Only then does it replace the serving shard. Every phase is recorded durably, so recovery picks up where it left off.',
                 },
-                {
-                  n: '4',
-                  title: 'Followers poll for new log entries',
-                  body: "Each follower maintains a replication stream per table, pulling committed entries from the leader's LogServer over gRPC.",
-                },
-                {
-                  n: '5',
-                  title: 'Follower proposes entries into its own Raft',
-                  body: 'The follower re-proposes each entry into its own per-table Raft group. Raft replicates within the follower cluster too.',
-                },
-                {
-                  n: '6',
-                  title: 'Local client reads from the follower',
-                  body: 'Reads at the follower are served from its local Pebble store — zero cross-cluster latency.',
-                },
-              ].map((step) => (
-                <li key={step.n} className="mb-8 ml-6">
-                  <span className="absolute -left-3.5 flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white ring-4 ring-white dark:ring-slate-950">
-                    {step.n}
-                  </span>
-                  <h3 className="mb-1 font-semibold text-slate-900 dark:text-slate-50">
-                    {step.title}
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900"
+                >
+                  <h3 className="mb-2 font-semibold text-slate-900 dark:text-slate-50">
+                    {item.title}
                   </h3>
                   <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                    {step.body}
+                    {item.body}
                   </p>
-                </li>
+                </div>
               ))}
-            </ol>
+            </div>
           </section>
 
           {/* CTA to docs */}
@@ -343,8 +377,8 @@ export default function ArchitecturePage() {
               Want the full technical details?
             </h2>
             <p className="mb-6 text-sm text-slate-600 dark:text-slate-400">
-              The Architecture doc covers Raft internals, the QUIC transport fork, MVCC versioning,
-              and more.
+              The Architecture doc covers Raft internals, the QUIC transport, the V2 key schema,
+              MVCC revisions, and more.
             </p>
             <Link
               href="/docs/main/architecture"
