@@ -6,32 +6,66 @@ export const metadata: Metadata = {
   description: 'Official client libraries, community tools, and integrations for ArmadaKV.',
 };
 
-const clients = [
+const CLIENT_REPO = 'https://github.com/armadakv/client';
+
+type Client = {
+  name: string;
+  lang: string;
+  langColor: string;
+  description: string;
+  /** Packages, each shown as an install line. */
+  packages: { label?: string; install: string }[];
+  href?: string;
+  planned?: boolean;
+};
+
+const clients: Client[] = [
   {
-    name: 'armada-go',
+    name: 'Go',
     lang: 'Go',
     langColor: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
     description:
-      'Official Go client library. Provides a high-level API for KV operations, table management, and watch streams.',
-    href: 'https://github.com/armadakv/armada-go',
+      'Idiomatic Go client for KV reads and writes, transactions, revision filters and table management. Optional plugins add Prometheus metrics, OpenTelemetry tracing, and zap or logrus logging.',
+    packages: [
+      { install: 'go get github.com/armadakv/client/go' },
+      {
+        label: 'plugins',
+        install: 'github.com/armadakv/client/go/plugin/{rprom,rotel,rzap,rlogrus}',
+      },
+    ],
+    href: `${CLIENT_REPO}/tree/main/go`,
   },
   {
-    name: 'armada-java-core',
-    lang: 'Java / JVM',
+    name: 'Java / JVM',
+    lang: 'JVM',
     langColor: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
     description:
-      'Official low-level JVM client built on top of the generated gRPC stubs. Works with any JVM language.',
-    href: 'https://github.com/armadakv/armada-java',
-    note: 'Artifact still published as regatta-java-core.',
+      'Client for any JVM language, with a Spring Data KeyValue integration for Repository-style access and JUnit / Testcontainers helpers for running a real Armada in tests.',
+    packages: [
+      { label: 'client', install: 'io.armadakv:armada-java-core' },
+      { label: 'Spring', install: 'io.armadakv:armada-java-spring-data' },
+      { label: 'tests', install: 'io.armadakv:armada-java-test' },
+      { label: 'stubs', install: 'io.armadakv:armada-java-grpc' },
+    ],
+    href: `${CLIENT_REPO}/tree/main/java`,
   },
   {
-    name: 'armada-java-spring-data',
-    lang: 'Spring / JVM',
-    langColor: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+    name: 'Python',
+    lang: 'Python',
+    langColor: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
     description:
-      'Spring Data integration for Armada. Use familiar Repository abstractions to interact with the KV store.',
-    href: 'https://github.com/armadakv/armada-java',
-    note: 'Artifact still published as regatta-java-spring-data.',
+      'A native Python client is planned. Until then, any Python gRPC toolchain can generate stubs from the proto files.',
+    packages: [],
+    planned: true,
+  },
+  {
+    name: 'Rust',
+    lang: 'Rust',
+    langColor: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
+    description:
+      'A Rust client is planned. Until then, tonic or any Rust gRPC toolchain can generate stubs from the proto files.',
+    packages: [],
+    planned: true,
   },
 ];
 
@@ -40,53 +74,41 @@ const uiClients = [
     name: 'armada-console',
     category: 'Web UI',
     description:
-      'Web-based graphical console for Armada. Browse tables, run KV queries, and inspect cluster state directly from your browser.',
+      'Web dashboard for Armada: browse and edit keys across tables, create and manage tables, and monitor nodes and cluster metrics. Pre-built binaries for Linux and macOS.',
     href: 'https://github.com/armadakv/console',
-    comingSoon: false,
   },
 ];
 
 const cliClients = [
   {
     name: 'arq',
-    category: 'CLI',
+    category: 'Data plane',
     description:
-      'The query and data-plane CLI. Covers KV reads, writes, watches, and transactions. Transaction UX follows the familiar etcdctl txn model with cmp / then / else sections.',
-    href: 'https://github.com/armadakv/armada',
-    comingSoon: false,
+      'Query CLI for application data: get (by key, prefix or range, with counts, keys-only, streaming and linearizable reads), put, delete, and transactions in the familiar etcdctl cmp / then / else style.',
+    href: '/docs/main/operations_guide/cli/arq',
   },
   {
     name: 'arctl',
-    category: 'CLI',
+    category: 'Control plane',
     description:
-      'The control-plane and maintenance CLI. Handles backup, restore, reset, and cluster/table administration — keeping operational commands separate from application KV access.',
-    href: 'https://github.com/armadakv/armada',
-    comingSoon: false,
+      'Administration CLI: create, list and delete tables, and back up or restore them. Keeps operational commands separate from application data access.',
+    href: '/docs/main/operations_guide/cli/arctl',
   },
 ];
 
-const protocol = [
-  {
-    title: 'KV service',
-    description: 'Get, Put, Delete, and range scan. Supports prefix and range deletes.',
-    href: '/docs/main/api',
-  },
-  {
-    title: 'Tables service',
-    description: 'Create, list, and delete tables dynamically without restarting the cluster.',
-    href: '/docs/main/api',
-  },
-  {
-    title: 'Transactions',
-    description: 'Multi-key compare-and-swap transactions with conditional put and delete.',
-    href: '/docs/main/user_guide/transactions',
-  },
-  {
-    title: 'Maintenance service',
-    description: 'Backup and restore individual tables over a streaming gRPC endpoint.',
-    href: '/docs/main/operations_guide/backups',
-  },
-];
+const GITHUB_ICON =
+  'M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z';
+
+function RepoLink({ href }: { href: string }) {
+  return (
+    <div className="mt-auto flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+      <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden="true">
+        <path d={GITHUB_ICON} />
+      </svg>
+      {href.replace('https://github.com/', '').replace('/tree/main/', '/')}
+    </div>
+  );
+}
 
 export default function EcosystemPage() {
   return (
@@ -114,47 +136,81 @@ export default function EcosystemPage() {
             <h2 className="mb-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
               Official Client Libraries
             </h2>
-            <p className="mb-8 text-slate-500 dark:text-slate-400">
-              Maintained by the Armada KV team. All clients wrap the gRPC API and handle connection
-              management, retries, and TLS.
+            <p className="mb-8 max-w-3xl text-slate-500 dark:text-slate-400">
+              Maintained by the Armada KV team in the{' '}
+              <a
+                href={CLIENT_REPO}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                armadakv/client
+              </a>{' '}
+              monorepo. The Go and JVM SDKs are built from the same pinned copy of the protocol and
+              checked by a shared conformance suite against Armada release images.
             </p>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              {clients.map((c) => (
-                <a
-                  key={c.name}
-                  href={c.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-6 transition-colors hover:border-blue-400 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-sm font-semibold text-slate-900 group-hover:text-blue-600 dark:text-slate-50 dark:group-hover:text-blue-400">
-                      {c.name}
-                    </span>
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${c.langColor}`}>
-                      {c.lang}
-                    </span>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {clients.map((c) => {
+                const body = (
+                  <>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-base font-semibold text-slate-900 group-hover:text-blue-600 dark:text-slate-50 dark:group-hover:text-blue-400">
+                        {c.name}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-2">
+                        {c.planned && (
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                            Coming soon
+                          </span>
+                        )}
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${c.langColor}`}
+                        >
+                          {c.lang}
+                        </span>
+                      </span>
+                    </div>
+                    <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                      {c.description}
+                    </p>
+                    {c.packages.length > 0 && (
+                      <ul className="space-y-1.5">
+                        {c.packages.map((pkg) => (
+                          <li key={pkg.install} className="flex items-center gap-2">
+                            {pkg.label && (
+                              <span className="w-14 shrink-0 text-xs text-slate-500 dark:text-slate-400">
+                                {pkg.label}
+                              </span>
+                            )}
+                            <code className="block min-w-0 flex-1 overflow-x-auto rounded-md bg-slate-900 px-3 py-1.5 font-mono text-xs whitespace-nowrap text-slate-100 dark:bg-slate-950">
+                              {pkg.install}
+                            </code>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {c.href && <RepoLink href={c.href} />}
+                  </>
+                );
+                return c.href ? (
+                  <a
+                    key={c.name}
+                    href={c.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50 p-6 transition-colors hover:border-blue-400 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500"
+                  >
+                    {body}
+                  </a>
+                ) : (
+                  <div
+                    key={c.name}
+                    className="flex flex-col gap-4 rounded-xl border border-dashed border-slate-300 p-6 dark:border-slate-700"
+                  >
+                    {body}
                   </div>
-                  <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                    {c.description}
-                  </p>
-                  {c.note && (
-                    <p className="text-xs text-slate-400 italic dark:text-slate-500">{c.note}</p>
-                  )}
-                  <div className="mt-auto flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
-                    <svg
-                      viewBox="0 0 16 16"
-                      width="12"
-                      height="12"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-                    </svg>
-                    {c.href.replace('https://github.com/', '')}
-                  </div>
-                </a>
-              ))}
+                );
+              })}
             </div>
           </section>
 
@@ -191,18 +247,7 @@ export default function EcosystemPage() {
                   <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                     {t.description}
                   </p>
-                  <div className="mt-auto flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
-                    <svg
-                      viewBox="0 0 16 16"
-                      width="12"
-                      height="12"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-                    </svg>
-                    {t.href.replace('https://github.com/', '')}
-                  </div>
+                  <RepoLink href={t.href} />
                 </a>
               ))}
             </div>
@@ -212,55 +257,24 @@ export default function EcosystemPage() {
             </h3>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {cliClients.map((t) => (
-                <div
+                <Link
                   key={t.name}
-                  className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900"
+                  href={t.href}
+                  className="group flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-6 transition-colors hover:border-blue-400 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-sm font-semibold text-slate-900 dark:text-slate-50">
+                    <span className="font-mono text-sm font-semibold text-slate-900 group-hover:text-blue-600 dark:text-slate-50 dark:group-hover:text-blue-400">
                       {t.name}
                     </span>
-                    <div className="flex items-center gap-2">
-                      {t.comingSoon && (
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
-                          Coming soon
-                        </span>
-                      )}
-                      <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300">
-                        {t.category}
-                      </span>
-                    </div>
+                    <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                      {t.category}
+                    </span>
                   </div>
                   <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                     {t.description}
                   </p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Protocol / API surface */}
-          <section>
-            <h2 className="mb-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-              gRPC API Surface
-            </h2>
-            <p className="mb-8 text-slate-500 dark:text-slate-400">
-              Armada&apos;s wire protocol is gRPC + protobuf. Implement a client in any language
-              with first-class gRPC support. These are the four main service areas.
-            </p>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {protocol.map((p) => (
-                <Link
-                  key={p.title}
-                  href={p.href}
-                  className="flex flex-col gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-5 transition-colors hover:border-blue-400 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500"
-                >
-                  <span className="font-semibold text-slate-900 dark:text-slate-50">{p.title}</span>
-                  <span className="text-sm text-slate-600 dark:text-slate-400">
-                    {p.description}
-                  </span>
-                  <span className="mt-1 text-xs font-medium text-blue-600 dark:text-blue-400">
-                    View in docs →
+                  <span className="mt-auto text-xs font-medium text-blue-600 dark:text-blue-400">
+                    CLI reference →
                   </span>
                 </Link>
               ))}
@@ -284,8 +298,10 @@ export default function EcosystemPage() {
                   >
                     armada/proto
                   </a>{' '}
-                  directory. Generate client stubs with protoc and the gRPC plugin for your
-                  language. The full API reference is in the docs.
+                  directory; the client monorepo vendors a copy pinned to an Armada release.
+                  Generate stubs with protoc or buf and the gRPC plugin for your language. Note that
+                  the wire package is still named{' '}
+                  <code className="font-mono text-xs">regatta.v1</code> for compatibility.
                 </p>
               </div>
               <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
