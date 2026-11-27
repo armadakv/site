@@ -1,6 +1,7 @@
 import { isValidElement } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import type { Components } from 'react-markdown';
 import MermaidDiagram from './MermaidDiagram';
 
@@ -133,6 +134,16 @@ const components: Components = {
     <td className="border border-slate-200 px-4 py-2 dark:border-slate-700">{children}</td>
   ),
   tr: ({ children }) => <tr className="even:bg-slate-50 dark:even:bg-slate-800/50">{children}</tr>,
+  details: ({ children }) => (
+    <details className="group my-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 dark:border-slate-700 dark:bg-slate-800/50">
+      {children}
+    </details>
+  ),
+  summary: ({ children }) => (
+    <summary className="cursor-pointer py-1 font-medium text-slate-800 select-none dark:text-slate-100">
+      {children}
+    </summary>
+  ),
   hr: () => <hr className="my-8 border-slate-200 dark:border-slate-700" />,
   img: ({ src, alt }) => (
     // eslint-disable-next-line @next/next/no-img-element
@@ -164,7 +175,11 @@ function extractText(node: React.ReactNode): string {
 export default function DocsContent({ content }: DocsContentProps) {
   return (
     <article className="min-w-0">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw]}
+        components={components}
+      >
         {content}
       </ReactMarkdown>
     </article>
