@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: '%s | Armada KV',
   },
   description:
-    'Armada is a distributed, eventually consistent key-value store built for Kubernetes, featuring hub-and-spoke replication and high read throughput.',
+    'Armada is a geographically distributed, etcd-style key-value store for Kubernetes: one Raft leader cluster orders every write, and follower clusters in every region replicate it and serve reads locally.',
   icons: {
     icon: [
       { url: '/favicon-16.png', sizes: '16x16', type: 'image/png' },
